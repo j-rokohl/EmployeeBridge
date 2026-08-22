@@ -1,0 +1,173 @@
+﻿@using Umbraco.Cms.Web.Common.PublishedModels;
+@using Umbraco.Cms.Core.Models;
+@using Umbraco.Cms.Core.Models.Blocks;
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<ContentModels.HomePage>
+@using ContentModels = Umbraco.Cms.Web.Common.PublishedModels;
+@{
+	Layout = "masterTemplate.cshtml";
+}
+
+
+<!-- Carousel Start -------------------------------------------------------------------------------->
+@if (Model.Value<string>("showOrHideCarousel") == "Show")
+{
+      var carouselBlocks = Model.Value<BlockListModel>("carouselGroupCollection");
+
+  @if (carouselBlocks != null && carouselBlocks.Any())
+  {
+      @await Html.PartialAsync("~/Views/Partials/custom/CarouselGroup.cshtml", carouselBlocks)
+  }
+
+}
+<!-- Carousel End ---------------------------------------------------------------------------------->
+<!-- Content Start --------------------------------------------------------------------------------->
+@if (Model.Value<string>("showOrHideContent") == "Show")
+{
+  <div class="container-flex">
+    <div class="container pt-5 pb-5">
+      <h1 class="gradient mb-4">@Model.Value("pageTitle")</h1>
+      <div>@Model.Value("bodyText")</div>
+    </div>
+  </div>
+}
+<!-- Content End ----------------------------------------------------------------------------------->
+<!-- Feature Start --------------------------------------------------------------------------------->
+@if (Model.Value<string>("showOrHideFeatureContent") == "Show")
+{
+    var featureImage = Model.Value<IPublishedContent>("featureImage");
+    var featureButton = Model.Value<IEnumerable<Link>>("featureButton")?.FirstOrDefault() 
+                        ?? Model.Value<Link>("featureButton");
+
+    <div class="container-flex bg-light">
+        <div class="container pt-5 pb-5">
+            <div class="row section align-items-center">
+                <div class="col-md-8">
+                    @if (Model.HasValue("featureTitle"))
+                    {
+                        <h2 class="gradient mb-4">@Model.Value("featureTitle")</h2>
+                    }
+                    
+                    @if (Model.HasValue("contentEditor"))
+                    {
+                        <div class="mb-4">
+                            @Model.Value("contentEditor")
+                        </div>
+                    }
+
+                    @if (featureButton != null)
+                    {
+                        <a href="@featureButton.Url" 
+                           target="@(string.IsNullOrWhiteSpace(featureButton.Target) ? "_self" : featureButton.Target)" 
+                           class="btn btn-primary px-5">
+                            @(string.IsNullOrWhiteSpace(featureButton.Name) ? "Learn More" : featureButton.Name)
+                        </a>
+                    }
+                </div>
+
+                <div class="col-md-4 text-center">
+                    @if (featureImage != null)
+                    {
+                        <img src="@featureImage.Url()" 
+                             alt="@(featureImage.Value<string>("altText") ?? Model.Value<string>("featureTitle") ?? "Featured Image")" 
+                             class="img-fluid" 
+                             style="max-width: 300px;">
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+<!-- Feature End ----------------------------------------------------------------------------------->
+<!-- Card Group Start ------------------------------------------------------------------------------>
+@if (Model.Value<string>("showOrHideCards") == "Show")
+{
+
+<div class="container-flex">
+    <div class="container pt-5 pb-5">
+        <h2 class="gradient mb-4">@Model.Value("cardGroupTitle")</h2>
+
+            @{
+            var cardGroupBlocks = Model.Value<BlockListModel>("cardGroup");
+            
+            // Read dropdown from HomePage Document Type
+            int itemsPerRow = Model.Value<int>("cardGroupSettings");
+
+            // Fallback if dropdown is unselected or 0
+            if (itemsPerRow == 0 && cardGroupBlocks != null)
+            {
+                int count = cardGroupBlocks.Count();
+                itemsPerRow = count switch { 2 => 2, 3 => 3, 5 => 5, _ => 4 };
+            }
+            }
+
+        @if (cardGroupBlocks != null && cardGroupBlocks.Any())
+        {
+            @* Pass both cards and the column count via ViewData *@
+            @await Html.PartialAsync(
+                "~/Views/Partials/custom/CardGroup.cshtml", 
+                cardGroupBlocks, 
+                new ViewDataDictionary(ViewData) { { "ItemsPerRow", itemsPerRow } }
+            )
+        }
+    </div>
+</div>
+}
+<!-- Card Group End -------------------------------------------------------------------------------->
+<!-- Accordion Start ------------------------------------------------------------------------------->
+@if (Model.Value<string>("showOrHideAccordion") == "Show")
+{
+<div class="container-flex bg-light">
+    <div class="container pt-5 pb-5">
+        <h2 class="gradient mb-4">Frequently Asked Questions</h2>
+
+        @{
+            // Replace "faqAccordion" with your actual Block List property alias on HomePage
+            var faqBlocks = Model.Value<BlockListModel>("accordionGroupItems");
+        }
+
+        @if (faqBlocks != null && faqBlocks.Any())
+        {
+            @await Html.PartialAsync("~/Views/Partials/custom/AccordionGroup.cshtml", faqBlocks)
+        }
+    </div>
+</div>
+}
+<!-- Accordion End --------------------------------------------------------------------------------->
+<!-- Buttons Start --------------------------------------------------------------------------------->
+  <!-- <div class="container-flex">
+    <div class="container pt-5 pb-5">
+      <h2>Button Rows</h2>
+      <div class="mt-4 mb-4">
+        <h3>Regular</h3>
+        <button type="button" class="btn btn-primary">Primary</button>
+        <button type="button" class="btn btn-secondary">Secondary</button>
+        <button type="button" class="btn btn-success">Success</button>
+        <button type="button" class="btn btn-danger">Danger</button>
+        <button type="button" class="btn btn-warning">Warning</button>
+        <button type="button" class="btn btn-info">Info</button>
+        <button type="button" class="btn btn-light">Light</button>
+        <button type="button" class="btn btn-dark">Dark</button>
+      </div>
+
+      <div class="mt-4 mb-4">
+        <h3>Outline</h3>
+        <button type="button" class="btn btn-outline-primary">Primary</button>
+        <button type="button" class="btn btn-outline-secondary">Secondary</button>
+        <button type="button" class="btn btn-outline-success">Success</button>
+        <button type="button" class="btn btn-outline-danger">Danger</button>
+        <button type="button" class="btn btn-outline-warning">Warning</button>
+        <button type="button" class="btn btn-outline-info">Info</button>
+        <button type="button" class="btn btn-outline-light">Light</button>
+        <button type="button" class="btn btn-outline-dark">Dark</button>
+      </div>
+
+      <div class="mt-4 mb-4">
+        <h3>Block</h3>
+        <div class="d-grid gap-2 col-6">
+          <button class="btn btn-primary" type="button">Button</button>
+          <button class="btn btn-primary" type="button">Button</button>
+        </div>
+      </div>
+    </div>
+  </div> -->
+  <!-- Buttons End ----------------------------------------------------------------------------------->

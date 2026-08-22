@@ -1,0 +1,97 @@
+﻿@using Umbraco.Cms.Web.Common.PublishedModels;
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using ContentModels = Umbraco.Cms.Web.Common.PublishedModels;
+@using Umbraco.Cms.Core.Strings;
+@{
+	Layout = null;
+}
+
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bootstrap demo</title>
+  <!-- 1. Bootstrap CSS & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- 2. Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <!-- 3. Custom Font -->
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+
+<body>
+
+  <div class="alert alert-primary d-flex align-items-center mb-0 alert-dismissible fade show" role="alert"
+    style="border: 0; border-radius: 0;">
+    <svg class="bi flex-shrink-0 me-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" height="16" width="16"
+      id="info-fill" fill="currentColor">
+      <path
+        d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
+    </svg>
+    <div>An example alert with an icon.</div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+
+  <!-- Main Navigation ------------------------------------------------>
+  @await Html.PartialAsync("custom/NavigationLinks", Model)
+
+  <!-- Main Content --------------------------------------------------->
+	@RenderBody()
+
+  <!-- Footer with Black Bottom Bar ----------------------------------->
+  @{
+    var footerNode = Umbraco.ContentAtRoot().FirstOrDefault(x => x.ContentType.Alias == "footer");
+    var bottomBarText = footerNode?.Value<IHtmlEncodedString>("bottomBarText")?? footerNode?.Value<IHtmlEncodedString>("bottomBarText");
+
+  }
+  <footer class="bg-dark text-white pt-4 mt-auto">
+    <!-- Top 3 Columns Section -->
+    <div class="container pb-4">
+      <div class="row gx-5 gy-5">
+        
+        <!-- Column 1: About / Brand -->
+        <div class="col-12 col-md-4">
+          <h5 class="text-uppercase fw-bold mb-3">@footerNode.Value("columnTitleOne")</h5>
+          <div class="text-white-50 small">
+            @footerNode.Value("columnTextOne")
+          </div>
+        </div>
+
+        <!-- Column 2: Quick Links -->
+        <div class="col-12 col-md-4">
+          <h5 class="text-uppercase fw-bold mb-3">@footerNode.Value("columnTitleTwo")</h5>
+          <div class="text-white-50 small">
+            @footerNode.Value("columnTextTwo")
+          </div>
+        </div>
+
+        <!-- Column 3: Contact & Socials -->
+        <div class="col-12 col-md-4">
+          <h5 class="text-uppercase fw-bold mb-3">@footerNode.Value("columnTitleThree")</h5>
+          <div class="text-white-50 small">
+            @footerNode.Value("columnTextThree")
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Solid Black Bottom Bar -->
+    <div class="bg-black py-3">
+      <div class="container text-center text-white-50 small">
+        @footerNode.Value("bottomBarText")
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
+    crossorigin="anonymous"></script>
+</body>
+
+</html>

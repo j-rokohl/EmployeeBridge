@@ -1,0 +1,76 @@
+﻿@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Strings
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockListModel>
+
+@{
+    var slides = Model;
+    if (slides == null || !slides.Any()) return;
+
+    var carouselId = "carousel_" + Guid.NewGuid().ToString("N");
+    var slideList = slides.ToList();
+}
+
+<div id="@carouselId" class="carousel carousel-dark slide" data-bs-ride="false">
+    @* Indicator Dots *@
+    <div class="carousel-indicators">
+        @for (int i = 0; i < slideList.Count; i++)
+        {
+            <button type="button" 
+                    data-bs-target="#@carouselId" 
+                    data-bs-slide-to="@i" 
+                    class="@(i == 0 ? "active" : "")" 
+                    aria-current="@(i == 0 ? "true" : "false")" 
+                    aria-label="Slide @(i + 1)"></button>
+        }
+    </div>
+
+    @* Carousel Slides *@
+    <div class="carousel-inner">
+        @for (int i = 0; i < slideList.Count; i++)
+        {
+            var item = slideList[i].Content;
+
+            var image = item.Value<IPublishedContent>("carouselImage");
+            var slideLabel = item.Value<string>("slideLabel");
+            
+            // Get Richtext Editor value as HTML-encoded string
+            var slideText = item.Value<IHtmlEncodedString>("slideText");
+
+            <div class="carousel-item @(i == 0 ? "active" : "")">
+                @if (image != null)
+                {
+                    <img src="@image.Url()" class="d-block w-100" alt="@(image.Value<string>("altText") ?? slideLabel ?? "Carousel slide")">
+                }
+                
+                @if (!string.IsNullOrWhiteSpace(slideLabel) || (slideText != null && !string.IsNullOrWhiteSpace(slideText.ToHtmlString())))
+                {
+                    <div class="carousel-caption d-md-block" 
+                         style="background-color: rgba(255, 255, 255, 0.70); border-radius: 20px; padding: 15px;">
+                         <div class="caption-indent">
+                        @if (!string.IsNullOrWhiteSpace(slideLabel))
+                        {
+                            <h5 class="carousel-header">@slideLabel</h5>
+                        }
+                        @if (slideText != null && !string.IsNullOrWhiteSpace(slideText.ToHtmlString()))
+                        {
+                            @* Render HTML output directly without an extra <p> wrapper *@
+                            @slideText
+                        }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    @* Controls *@
+    <button class="carousel-control-prev" type="button" data-bs-target="#@carouselId" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#@carouselId" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>
