@@ -20,6 +20,17 @@
 
 }
 <!-- Carousel End ---------------------------------------------------------------------------------->
+<!-- Icon Grid Start ------------------------------------------------------------------------------->
+@if (Model.Value<string>("showOrHideIconGrid") == "Show")
+{
+    var iconGridBlocks = Model.Value<BlockListModel>("iconGridElements");
+
+@if (iconGridBlocks != null && iconGridBlocks.Any())
+{
+    @await Html.PartialAsync("custom/IconGrid", iconGridBlocks)
+}
+}
+<!-- Icon Grid End --------------------------------------------------------------------------------->
 <!-- Content Start --------------------------------------------------------------------------------->
 @if (Model.Value<string>("showOrHideContent") == "Show")
 {
@@ -58,7 +69,7 @@
                     {
                         <a href="@featureButton.Url" 
                            target="@(string.IsNullOrWhiteSpace(featureButton.Target) ? "_self" : featureButton.Target)" 
-                           class="btn btn-primary px-5">
+                           class="btn btn-success px-5">
                             @(string.IsNullOrWhiteSpace(featureButton.Name) ? "Learn More" : featureButton.Name)
                         </a>
                     }

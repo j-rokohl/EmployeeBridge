@@ -37,6 +37,9 @@
             // Get Richtext Editor value as HTML-encoded string
             var slideText = item.Value<IHtmlEncodedString>("slideText");
 
+            var slideFeatureButton = item.Value<IEnumerable<Link>>("slideFeatureButton")?.FirstOrDefault() 
+                                    ?? item.Value<Link>("slideFeatureButton");
+
             <div class="carousel-item @(i == 0 ? "active" : "")">
                 @if (image != null)
                 {
@@ -56,6 +59,14 @@
                         {
                             @* Render HTML output directly without an extra <p> wrapper *@
                             @slideText
+                        }
+                        @if (slideFeatureButton != null)
+                        {
+                            <a href="@slideFeatureButton.Url" 
+                               target="@(string.IsNullOrWhiteSpace(slideFeatureButton.Target) ? "_self" : slideFeatureButton.Target)" 
+                               class="btn btn-light px-5 mt-2">
+                                @(string.IsNullOrWhiteSpace(slideFeatureButton.Name) ? "Continue Reading" : slideFeatureButton.Name)
+                            </a>
                         }
                         </div>
                     </div>

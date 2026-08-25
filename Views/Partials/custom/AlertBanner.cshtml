@@ -1,0 +1,72 @@
+﻿@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Strings
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+
+@{
+    var alertNode = Umbraco.ContentAtRoot()
+                           .FirstOrDefault(x => x.ContentType.Alias.Equals("alertBanner", StringComparison.OrdinalIgnoreCase));
+
+    if (alertNode == null) return;
+
+    // Read the Radio Button list as a string
+    var alertToggleRaw = alertNode.Value<string>("showOrHideAlert") ?? "";
+
+    // Check if the selected radio button equals "Show", "True", "Yes", or "1"
+    var showAlert = alertToggleRaw.Equals("Show", StringComparison.OrdinalIgnoreCase)
+                    || alertToggleRaw.Equals("True", StringComparison.OrdinalIgnoreCase)
+                    || alertToggleRaw.Equals("Yes", StringComparison.OrdinalIgnoreCase)
+                    || alertToggleRaw.Equals("1", StringComparison.Ordinal);
+
+    if (!showAlert) return;
+
+    // Remaining properties
+    var alertText = alertNode.Value<IHtmlEncodedString>("alertText");
+    var alertTextString = alertNode.Value<string>("alertText");
+    var alertTheme = alertNode.Value<string>("alertColor");
+    var svgRaw = alertNode.Value<string>("alertIconSvg");
+    var iconMedia = alertNode.Value<IPublishedContent>("alertIconMedia");
+
+    var themeClass = !string.IsNullOrWhiteSpace(alertTheme) ? alertTheme.ToLower().Trim() : "primary";
+}
+
+<div class="alert alert-@themeClass d-flex align-items-center mb-0 alert-dismissible fade show" 
+     role="alert" 
+     style="border: 0; border-radius: 0;">
+
+    @if (!string.IsNullOrWhiteSpace(svgRaw))
+    {
+        <div class="flex-shrink-0 me-2 d-flex align-items-center" style="width: 16px; height: 16px;">
+            @Html.Raw(svgRaw)
+        </div>
+    }
+    else if (iconMedia != null)
+    {
+        <img src="@iconMedia.Url()" 
+             alt="Alert Icon" 
+             class="flex-shrink-0 me-2" 
+             style="width: 16px; height: 16px; object-fit: contain;" />
+    }
+    else
+    {
+        <svg class="bi flex-shrink-0 me-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" height="16" width="16" fill="currentColor">
+            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
+        </svg>
+    }
+
+    <div>
+        @if (alertText != null && !string.IsNullOrWhiteSpace(alertText.ToHtmlString()))
+        {
+            @alertText
+        }
+        else if (!string.IsNullOrWhiteSpace(alertTextString))
+        {
+            @alertTextString
+        }
+        else
+        {
+            <span>An example alert with an icon.</span>
+        }
+    </div>
+
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>

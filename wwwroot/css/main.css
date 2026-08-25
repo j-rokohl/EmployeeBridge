@@ -125,15 +125,11 @@
 body {
   font-family: 'Inter', sans-serif;
   font-optical-sizing: auto;
-  font-weight: <weight>;
-  font-style: normal;
 }
 
 h1, h2, h3, h4, h5 {
   font-family: 'Ranade-Medium', sans-serif;
   font-optical-sizing: auto;
-  font-weight: <weight>;
-  font-style: normal;
 }
 
 .bg-primary {
@@ -155,6 +151,15 @@ h1, h2, h3, h4, h5 {
     --bs-btn-disabled-color: #fff;
     --bs-btn-disabled-bg: #273370;
     --bs-btn-disabled-border-color: #273370;
+}
+
+.btn-light {
+    color: #1a8f39 !important;
+}
+
+.btn-success {
+    background-color: #1a8f39 !important;
+    border-color: #1a8f39 !important;
 }
 
 .btn {
@@ -266,4 +271,8 @@ h1, h2, h3, h4, h5 {
   @media (min-width: 768px) {
     margin-left: 6rem;
   }
+}
+
+.alert > div > p {
+  margin-bottom: 0 !important;
 }

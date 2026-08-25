@@ -1,0 +1,81 @@
+﻿@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Strings
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockListModel>
+
+@{
+    var blocks = Model;
+    if (blocks == null || !blocks.Any()) return;
+
+    var items = blocks.ToList();
+    var itemCount = items.Count;
+
+    // Dynamically choose column class based on total items (max 6)
+    var lgColumnClass = itemCount switch
+    {
+        1 => "row-cols-lg-1",
+        2 => "row-cols-lg-2",
+        3 => "row-cols-lg-3",
+        4 => "row-cols-lg-4",
+        6 => "row-cols-lg-6",
+        _ => "row-cols-lg-5" // Default fallback for 5 items or more
+    };
+}
+
+<div class="container-fluid py-5">
+    <div class="container">
+        <div class="row row-cols-2 row-cols-md-3 @lgColumnClass g-4 justify-content-center text-center">
+            @foreach (var block in items)
+            {
+                var content = block.Content;
+
+                var title = content.Value<string>("iconTitle");
+                var svgRaw = content.Value<string>("svgCode"); // Textarea or Richtext for raw <svg>
+                var iconMedia = content.Value<IPublishedContent>("iconImage"); // Media Picker fallback
+                var link = content.Value<IEnumerable<Link>>("iconLink")?.FirstOrDefault() 
+                           ?? content.Value<Link>("iconLink");
+
+                <div class="col d-flex flex-column align-items-center">
+                    
+                    @* Wrapper link if editor supplied a URL *@
+                    @if (link != null)
+                    {
+                        @:<a href="@link.Url" target="@(string.IsNullOrWhiteSpace(link.Target) ? "_self" : link.Target)" class="text-decoration-none text-dark d-flex flex-column align-items-center">
+                    }
+
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-sm mb-3" 
+                         style="width: 8rem; height: 8rem; flex-shrink: 0;">
+                        
+                        @if (!string.IsNullOrWhiteSpace(svgRaw))
+                        {
+                            @* Render raw Inline SVG *@
+                            @Html.Raw(svgRaw)
+                        }
+                        else if (iconMedia != null)
+                        {
+                            @* Render SVG/Image from Media Picker *@
+                            <img src="@iconMedia.Url()" alt="@title" style="width: 50%; height: 50%; object-fit: contain;" />
+                        }
+                        else
+                        {
+                            @* Fallback icon if empty *@
+                            <i class="bi bi-app-indicator fs-1"></i>
+                        }
+
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(title))
+                    {
+                        <h6 class="fw-bold mb-0">@title</h6>
+                    }
+
+                    @if (link != null)
+                    {
+                        @:</a>
+                    }
+
+                </div>
+            }
+        </div>
+    </div>
+</div>
