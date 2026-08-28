@@ -1,0 +1,25 @@
+﻿@using Umbraco.Cms.Core.Models
+@using Umbraco.Extensions
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+
+@{
+    // Get all published ancestors from the root down to the current page
+    var breadcrumbs = Model.Ancestors().Where(x => x.IsVisible()).Reverse().ToList();
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        @* Render ancestor pages as clickable links *@
+        @foreach (var item in breadcrumbs)
+        {
+            <li class="breadcrumb-item">
+                <a href="@item.Url()">@item.Name</a>
+            </li>
+        }
+
+        @* The current page is the last item and marked as active *@
+        <li class="breadcrumb-item active" aria-current="page">
+            @Model.Name
+        </li>
+    </ol>
+</nav>

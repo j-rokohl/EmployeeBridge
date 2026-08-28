@@ -1,0 +1,61 @@
+﻿@using Umbraco.Cms.Core.Models
+@using Umbraco.Extensions
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+
+@{
+    var item = Model;
+    var visibleChildren = item.Children().Where(x => x.IsVisible()).ToList();
+    var hasChildren = visibleChildren.Any();
+
+    // Safely retrieve the actual active page from ViewData
+    var currentContent = ViewData["CurrentPage"] as IPublishedContent;
+    var currentId = currentContent?.Id ?? 0;
+
+    // Checks: Is THIS the active page, or is the active page a child under this node?
+    var isCurrentPage = currentId == item.Id;
+    var isParentOfActive = currentContent != null && currentContent.Ancestors().Any(a => a.Id == item.Id);
+
+    // Strictly expand ONLY if on this page or on a child of this tree
+    var shouldExpand = isCurrentPage || isParentOfActive;
+
+    var collapseId = $"menu-node-{item.Id}";
+}
+
+<li>
+    @if (hasChildren)
+    {
+        <div class="nav-item-btn @(isCurrentPage ? "active" : "") p-0">
+            @* 1. Direct Link to the parent page *@
+            <a href="@item.Url()" class="flex-grow-1 text-decoration-none text-reset py-2 ps-2 pe-1 d-flex align-items-center">
+                <i class="bi bi-folder me-2"></i>
+                <span>@item.Name</span>
+            </a>
+
+            @* 2. Toggle button for dropdown collapse *@
+            <button class="btn btn-link text-reset p-2 border-0 shadow-none @(shouldExpand ? "" : "collapsed")"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#@collapseId"
+                    aria-expanded="@(shouldExpand ? "true" : "false")"
+                    aria-label="Toggle @item.Name Submenu">
+                <i class="bi bi-chevron-right toggle-icon"></i>
+            </button>
+        </div>
+
+        @* Submenu Tree *@
+        <div class="collapse @(shouldExpand ? "show" : "")" id="@collapseId">
+            <ul>
+                @foreach (var child in visibleChildren)
+                {
+                    @await Html.PartialAsync("custom/SidebarItem", child, ViewData)
+                }
+            </ul>
+        </div>
+    }
+    else
+    {
+        <a href="@item.Url()" class="nav-item-btn @(isCurrentPage ? "active" : "")">
+            <span>@item.Name</span>
+        </a>
+    }
+</li>

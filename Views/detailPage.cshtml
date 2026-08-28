@@ -4,9 +4,20 @@
 	Layout = "masterTemplate.cshtml";
 }
 
+<div class="d-flex flex-column flex-lg-row">
+    <!-- DYNAMIC SIDEBAR PARTIAL -->
+@await Html.PartialAsync("custom/Sidebar", Model)
+
 <div class="flex-grow-1 p-4">
 
-      <h1>Main Content Area</h1>
+      <div class="flex-grow-1 p-4">
+      @* Render the dynamic breadcrumb partial view *@
+      @await Html.PartialAsync("custom/Breadcrumbs")
+
+      <h1>@Model.Name</h1>
       <p>This content area sits next to the sidebar on desktop and under the navigation header on mobile screens.</p>
+      </div>
+
+</div>
 
 </div>

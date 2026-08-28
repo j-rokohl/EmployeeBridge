@@ -1,0 +1,47 @@
+﻿@using Umbraco.Cms.Core.Models
+@using Umbraco.Extensions
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+
+@{
+    var rootNode = Model.Root();
+    
+    // Explicitly pass the active page down to the partial child trees
+    ViewData["CurrentPage"] = Model;
+}
+
+<div class="sidebar-container bg-white">
+    <!-- Mobile Top Bar -->
+    <div class="mobile-header-bar d-flex justify-content-between align-items-center p-3">
+        <span class="fw-bold fs-5">Navigation</span>
+        <button class="btn btn-outline-secondary btn-sm eye-toggle collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#mobileNavCollapse" aria-expanded="false" aria-label="Toggle Navigation">
+            <i class="bi bi-eye fs-5"></i>
+            <i class="bi bi-eye-slash fs-5"></i>
+        </button>
+    </div>
+
+    <!-- Menu Content -->
+    <div class="collapse p-3" id="mobileNavCollapse">
+        <h6 class="d-none d-lg-block text-uppercase text-muted fw-bold mb-3">Navigation</h6>
+
+        <ul class="sidebar-nav">
+            @if (rootNode != null && rootNode.IsVisible())
+            {
+                var isHomeActive = Model.Id == rootNode.Id;
+                <li>
+                    <a href="@rootNode.Url()" class="nav-item-btn @(isHomeActive ? "active" : "")">
+                        <span><i class="bi bi-house-door me-2"></i>@rootNode.Name</span>
+                    </a>
+                </li>
+            }
+
+            @if (rootNode != null)
+            {
+                foreach (var child in rootNode.Children().Where(x => x.IsVisible()))
+                {
+                    @await Html.PartialAsync("custom/SidebarItem", child, ViewData)
+                }
+            }
+        </ul>
+    </div>
+</div>
