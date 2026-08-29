@@ -386,6 +386,13 @@ h6 {
 .toggle-icon {
   font-size: 0.8rem;
   transition: transform 0.2s ease-in-out;
+  display: inline-block;
+}
+
+/* Rotate 90 degrees (down) when the button is expanded */
+.nav-item-btn button[aria-expanded="true"] .toggle-icon,
+button[aria-expanded="true"] .toggle-icon {
+  transform: rotate(90deg);
 }
 
 .nav-item-btn[aria-expanded="true"] .toggle-icon {
