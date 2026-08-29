@@ -1,0 +1,35 @@
+﻿@using Umbraco.Cms.Web.Common.PublishedModels;
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@using Umbraco.Cms.Core.Models.Blocks;
+@{
+	Layout = "masterTemplate.cshtml";
+}
+
+<div class="d-flex flex-column flex-lg-row">
+    <!-- DYNAMIC SIDEBAR PARTIAL -->
+@await Html.PartialAsync("custom/Sidebar", Model)
+
+    <div class="flex-grow-1 p-4">
+
+        <div class="flex-grow-1 p-4">
+            @* Render the dynamic breadcrumb partial view *@
+            @await Html.PartialAsync("custom/Breadcrumbs")
+
+            <h1>@Model.Name</h1>
+            <!-- CONTENT -->
+        </div>
+        
+<!-- Icon Grid Start ------------------------------------------------------------------------------->
+@if (Model.Value<string>("showOrHideIconGrid") == "Show")
+{
+    var iconGridBlocks = Model.Value<BlockListModel>("iconGridElements");
+
+@if (iconGridBlocks != null && iconGridBlocks.Any())
+{
+    @await Html.PartialAsync("custom/IconGrid", iconGridBlocks)
+}
+}
+<!-- Icon Grid End --------------------------------------------------------------------------------->
+
+    </div>
+</div>

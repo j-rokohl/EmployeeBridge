@@ -143,14 +143,17 @@ h1,
 h2,
 h3,
 h4,
-h5,
-h6 {
+h5 {
   font-family: 'Ranade-Medium', sans-serif;
   font-optical-sizing: auto;
 }
 
 .bg-primary {
   background-color: #273370 !important;
+}
+
+.bg-primary:hover {
+  background-color:  #182254 !important;
 }
 
 .btn-primary {
@@ -174,9 +177,18 @@ h6 {
   color: #1a8f39 !important;
 }
 
+.btn-light:hover {
+  color: #ffffff !important;
+  background-color: #10752b !important;
+}
+
 .btn-success {
   background-color: #1a8f39 !important;
   border-color: #1a8f39 !important;
+}
+
+.btn-success:hover {
+  background-color: #10752b !important;
 }
 
 .btn {
