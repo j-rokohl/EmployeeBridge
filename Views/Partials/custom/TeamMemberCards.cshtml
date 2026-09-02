@@ -1,0 +1,106 @@
+﻿@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Extensions
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockListModel>
+
+@{
+    var members = Model;
+    if (members == null || !members.Any()) return;
+
+}
+    @foreach (var item in members)
+    {
+        var card = item.Content;
+
+        var photo = card.Value<IPublishedContent>("memberPhoto");
+        var name = card.Value<string>("memberName");
+        var title = card.Value<string>("memberTitle");
+        var email = card.Value<string>("memberEmail");
+        var phone = card.Value<string>("memberPhone");
+        var profileUrl = card.Value<IEnumerable<Link>>("memberProfileUrl")?.FirstOrDefault() 
+                          ?? card.Value<Link>("memberProfileUrl");
+
+        <div class="col">
+            <div class="card card-bulma-box h-100 grey-card">
+                <!-- Top Header / Avatar section -->
+                <div class="white-card p-4" style="border-bottom: 1px solid rgba(10, 10, 10, 0.1);">
+                    <div class="row g-1">
+                        <div class="col-md-3">
+                            <img src="@(photo != null ? photo.Url() : "/media/f0bb5nmr/avatar.png")" 
+                                 alt="@(name ?? "Team Member")" 
+                                 class="ms-2 rounded-circle circle-photo-leader">
+                        </div>
+                        <div class="col-md-9 d-flex flex-column justify-content-center">
+                            @if (!string.IsNullOrWhiteSpace(name))
+                            {
+                                <p class="ms-2 h4 mb-1 blue-link ranade">@name</p>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(title))
+                            {
+                                <p class="ms-2 mb-0">@title</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Details Footer -->
+                <div class="card-footer p-4">
+                    @if (!string.IsNullOrWhiteSpace(email))
+                    {
+                        <div class="row g-1 mb-2">
+                            <div class="col-md-2 d-flex justify-content-center">
+                                <i class="bi bi-envelope fs-2 blue-link"></i>
+                            </div>
+                            <div class="col-md-10">
+                                <p class="mb-0 small">Email</p>
+                                <p class="mb-0">
+                                    <a class="blue-link text-decoration-none" href="mailto:@email">@email</a>
+                                </p>
+                            </div>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(phone))
+                    {
+                        <div class="row g-1 mb-2">
+                            <div class="col-md-2 d-flex justify-content-center">
+                                <i class="bi bi-telephone fs-2 blue-link"></i>
+                            </div>
+                            <div class="col-md-10">
+                                <p class="mb-0 small">Phone</p>
+                                <p class="mb-0">
+                                    <a class="blue-link text-decoration-none" href="tel:@phone.Replace("-", "").Replace(" ", "")">@phone</a>
+                                </p>
+                            </div>
+                        </div>
+                    }
+
+                    @if (profileUrl != null && !string.IsNullOrWhiteSpace(profileUrl.Url))
+                    {
+                        // Clean URL display (removes https:// and http://)
+                        var displayUrl = profileUrl.Url.Replace("https://", "").Replace("http://", "");
+                        
+                        // Fall back to cleaned URL if link Title/Name was left blank in editor
+                        var linkText = !string.IsNullOrWhiteSpace(profileUrl.Name) ? profileUrl.Name : displayUrl;
+
+                        <div class="row g-1">
+                            <div class="col-md-2 d-flex justify-content-center">
+                                <i class="bi bi-person fs-2 blue-link"></i>
+                            </div>
+                            <div class="col-md-10">
+                                <p class="mb-0 small">Profile</p>
+                                <p class="mb-0">
+                                    <a class="blue-link text-decoration-none" 
+                                       href="@profileUrl.Url" 
+                                       target="@(string.IsNullOrWhiteSpace(profileUrl.Target) ? "_blank" : profileUrl.Target)" 
+                                       rel="noopener">
+                                        @linkText
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
