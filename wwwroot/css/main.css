@@ -148,6 +148,15 @@ h5 {
   font-optical-sizing: auto;
 }
 
+.ranade {
+  font-family: 'Ranade-Medium', sans-serif;
+  font-optical-sizing: auto;
+}
+
+.card-title {
+  color: #212529 !important;
+}
+
 .bg-primary {
   background-color: #273370 !important;
 }
@@ -418,4 +427,23 @@ button[aria-expanded="true"] .toggle-icon {
 
 .eye-toggle[aria-expanded="false"] .bi-eye-slash {
   display: none;
+}
+
+.blue-link {
+  color: #273370 !important;
+}
+
+.grey-card {
+  background-color: #e9ecef !important;
+}
+
+.white-card {
+  background-color: #ffffff !important;
+  border-radius: 16px 16px 0 0;
+}
+
+.circle-photo-leader {
+  width: 110px;
+  height: 110px;
+  object-fit: cover;
 }
