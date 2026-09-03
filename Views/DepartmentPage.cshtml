@@ -93,6 +93,53 @@
 </div>
 }
 <!-- Card Group End -------------------------------------------------------------------------------->
+<!-- Feature Start --------------------------------------------------------------------------------->
+@if (Model.Value<string>("showOrHideFeatureContent") == "Show")
+{
+    var featureImage = Model.Value<IPublishedContent>("featureImage");
+    var featureButton = Model.Value<IEnumerable<Link>>("featureButton")?.FirstOrDefault() 
+                        ?? Model.Value<Link>("featureButton");
+
+    <div class="container-flex">
+        <div class="container py-5">
+            <div class="row section align-items-center ps-4 pe-4">
+                <div class="col-md-8">
+                    @if (Model.HasValue("featureTitle"))
+                    {
+                        <h2 class="gradient mb-4">@Model.Value("featureTitle")</h2>
+                    }
+                    
+                    @if (Model.HasValue("contentEditor"))
+                    {
+                        <div class="mb-4">
+                            @Model.Value("contentEditor")
+                        </div>
+                    }
+
+                    @if (featureButton != null)
+                    {
+                        <a href="@featureButton.Url" 
+                           target="@(string.IsNullOrWhiteSpace(featureButton.Target) ? "_self" : featureButton.Target)" 
+                           class="btn btn-success px-5">
+                            @(string.IsNullOrWhiteSpace(featureButton.Name) ? "Learn More" : featureButton.Name)
+                        </a>
+                    }
+                </div>
+
+                <div class="col-md-4 text-center">
+                    @if (featureImage != null)
+                    {
+                        <img src="@featureImage.Url()" 
+                             alt="@(featureImage.Value<string>("altText") ?? Model.Value<string>("featureTitle") ?? "Featured Image")" 
+                             class="img-fluid" 
+                             style="max-width: 300px;">
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+<!-- Feature End ----------------------------------------------------------------------------------->
 <!-- Team Leader Start ----------------------------------------------------------------------------->
 @if (Model.Value<string>("showOrHideTeamMemberCards") == "Show")
 {
