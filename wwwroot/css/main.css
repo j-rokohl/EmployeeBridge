@@ -429,7 +429,7 @@ button[aria-expanded="true"] .toggle-icon {
   display: none;
 }
 
-.blue-link {
+.blue-link, a:not([class]) {
   color: #273370 !important;
 }
 
@@ -446,4 +446,30 @@ button[aria-expanded="true"] .toggle-icon {
   width: 110px;
   height: 110px;
   object-fit: cover;
+}
+
+.green-border {
+  position: relative; /* Creates an anchor point for the pseudo-element */
+  background: #DFF0E3;
+background: linear-gradient(90deg,rgba(223, 240, 227, 1) 0%, rgba(252, 252, 245, 1) 25%, rgba(255, 255, 255, 1) 100%);
+}
+
+.green-border::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 60px;       /* Change this to your exact pixel width */
+  height: 2px;        /* Change this to your border thickness */
+  background-color: #1a8f39; /* Border color */
+}
+
+.green-border::after {
+  content: "";
+  position: absolute;
+  bottom: 0;          /* Aligns line to the bottom */
+  left: 0;            /* Starts from the left side */
+  width: 60px;       /* Set your exact pixel width */
+  height: 2px;        /* Set your border thickness */
+  background-color: #1a8f39; /* Set your border color */
 }
