@@ -141,8 +141,13 @@
 }
 <!-- Feature End ----------------------------------------------------------------------------------->
 <!-- News Feed Start ------------------------------------------------------------------------------->
-@await Html.PartialAsync("custom/NewsFeedDepartmentPage", Model)
-<!-- News Feed End ------------------------------------------------------------------------------->
+<div class="container-flex">
+    <div class="container py-5">
+        <h2 class="gradient p-4">@Model.Value("newsFeedTitle")</h2>
+        @await Html.PartialAsync("custom/NewsFeedDepartmentPage", Model)
+    </div>
+</div>
+<!-- News Feed End --------------------------------------------------------------------------------->
 <!-- Team Leader Start ----------------------------------------------------------------------------->
 @if (Model.Value<string>("showOrHideTeamMemberCards") == "Show")
 {
