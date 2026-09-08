@@ -1,0 +1,66 @@
+﻿@using Umbraco.Cms.Core.Models
+@using Umbraco.Extensions
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+
+@{
+    // Safe extraction helper for Content Pickers (handles single or multiple selection configs)
+    IEnumerable<IPublishedContent> GetPickedDepartments(IPublishedContent contentNode)
+    {
+        if (contentNode == null || !contentNode.HasValue("department"))
+            return Enumerable.Empty<IPublishedContent>();
+
+        var multiPick = contentNode.Value<IEnumerable<IPublishedContent>>("department");
+        if (multiPick != null && multiPick.Any())
+            return multiPick;
+
+        var singlePick = contentNode.Value<IPublishedContent>("department");
+        if (singlePick != null)
+            return new[] { singlePick };
+
+        return Enumerable.Empty<IPublishedContent>();
+    }
+
+    // 1. Get the department nodes selected in the Content Picker ON THIS DEPARTMENT PAGE
+    var pagePickedDepts = GetPickedDepartments(Model).ToList();
+    
+    // Extract the target IDs from the central "Departments" folder picked on this page
+    var targetDeptIds = pagePickedDepts.Select(d => d.Id).ToHashSet();
+
+    // 2. Query ALL 'blogItemPage' nodes across the Umbraco cache
+    var allBlogPosts = Umbraco.ContentAtRoot()
+        .SelectMany(x => x.DescendantsOrSelf())
+        .Where(x => string.Equals(x.ContentType.Alias, "blogItemPage", StringComparison.OrdinalIgnoreCase))
+        .ToList();
+
+    // 3. Filter posts where their "department" picker matches ANY ID selected on this page's picker
+    var matchingBlogs = allBlogPosts
+        .Where(post => {
+            if (!post.IsVisible()) return false;
+
+            var postDepts = GetPickedDepartments(post);
+            return postDepts.Any(d => targetDeptIds.Contains(d.Id));
+        })
+        .OrderByDescending(x => x.CreateDate);
+}
+
+@if (matchingBlogs != null && matchingBlogs.Any())
+{
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @foreach (var article in matchingBlogs)
+        {   
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">@article.Name</h5>
+                        <p class="card-text">@article.Value("introText")</p>
+                        <a href="@article.Url()" class="btn btn-primary">Read Post</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <p>No news items found for this department.</p>
+}

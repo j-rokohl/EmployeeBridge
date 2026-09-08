@@ -4,7 +4,12 @@
 
 @{
     var item = Model;
-    var visibleChildren = item.Children().Where(x => x.IsVisible()).ToList();
+    
+    // Do not fetch children if the current node is a News main page
+    var visibleChildren = item.ContentType.Alias == "blogListPage" 
+        ? Enumerable.Empty<IPublishedContent>()
+        : item.Children().Where(x => x.IsVisible()).ToList();
+
     var hasChildren = visibleChildren.Any();
 
     // Safely retrieve the actual active page from ViewData

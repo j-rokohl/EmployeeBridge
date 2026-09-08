@@ -140,6 +140,9 @@
     </div>
 }
 <!-- Feature End ----------------------------------------------------------------------------------->
+<!-- News Feed Start ------------------------------------------------------------------------------->
+@await Html.PartialAsync("custom/NewsFeedDepartmentPage", Model)
+<!-- News Feed End ------------------------------------------------------------------------------->
 <!-- Team Leader Start ----------------------------------------------------------------------------->
 @if (Model.Value<string>("showOrHideTeamMemberCards") == "Show")
 {
@@ -161,7 +164,7 @@ var teamLink = Model.Value<IEnumerable<Link>>("linkToMoreStaff")?.FirstOrDefault
                     </a>
                 </p>
             }
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-2 g-5 ps-4 pe-4">
+        <div class="row row-cols-1 row-cols-md-1 row-cols-lg-2 g-5 ps-4 pe-4">
             @{
             var teamMemberBlocks = Model.Value<BlockListModel>("teamMemberCardGroup");
             }
