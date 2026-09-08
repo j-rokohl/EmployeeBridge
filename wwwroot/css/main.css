@@ -161,10 +161,6 @@ h5 {
   background-color: #273370 !important;
 }
 
-.rounded-circle:hover {
-  background-color:  #182254 !important;
-}
-
 .btn-primary {
   --bs-btn-color: #fff;
   --bs-btn-bg: #273370;
@@ -474,13 +470,33 @@ background: linear-gradient(90deg,rgba(223, 240, 227, 1) 0%, rgba(252, 252, 245,
   background-color: #1a8f39; /* Set your border color */
 }
 
+a .rounded-circle {
+    transition: transform 0.3s ease;
+}
+
+/* Base image: smooth transition for icon rotation */
 .rounded-circle > img {
     width: 50%;
     height: 50%;
     object-fit: contain;
-    transition: transform 0.5s ease; /* Increase to 0.5s or 0.6s to slow down further */
+    transition: transform 0.3s ease;
+}
+
+.link-jump {
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+/* Hover state: lifts up, deepens shadow, and tilts icon */
+a:hover .rounded-circle {
+    transform: translateY(-10px); /* Bulma-style subtle vertical lift */
+    background-color:  #182254 !important;
+}
+
+a:hover .link-jump {
+    transform: translateY(-10px); /* Bulma-style subtle vertical lift */
 }
 
 a:hover > .rounded-circle > img {
-    transform: rotate(-15deg);
+    transform: rotate(-10deg);
 }
