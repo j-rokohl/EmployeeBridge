@@ -90,7 +90,7 @@
     }
     else
     {
-        <a href="@item.Url()" class="@(isCurrentPage ? "active" : "") flex-grow-1 text-decoration-none text-reset py-2 ps-2 pe-1 d-flex align-items-center">
+        <a href="@item.Url()" class="nav-item-btn @(isCurrentPage ? "active" : "") flex-grow-1 text-decoration-none text-reset py-2 ps-2 pe-1 d-flex align-items-center" style="justify-content: flex-start;">
             <i class="bi @iconClass me-2"></i>
             <span>@item.Name</span>
         </a>
