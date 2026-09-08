@@ -124,6 +124,17 @@
 </div>
 }
 <!-- Card Group End -------------------------------------------------------------------------------->
+<!-- News Feed Start ------------------------------------------------------------------------------->
+@if (Model.Value<string>("showOrHideNewsFeed") == "Show")
+{
+<div class="container-flex">
+    <div class="container pt-5 pb-5">
+        <h2 class="gradient mb-4">@Model.Value("newsFeedTitle")</h2>
+        @await Html.PartialAsync("custom/NewsFeedHomePage", Model)
+    </div>
+</div>
+}
+<!-- News Feed End --------------------------------------------------------------------------------->
 <!-- Accordion Start ------------------------------------------------------------------------------->
 @if (Model.Value<string>("showOrHideAccordion") == "Show")
 {
@@ -144,41 +155,3 @@
 </div>
 }
 <!-- Accordion End --------------------------------------------------------------------------------->
-<!-- Buttons Start --------------------------------------------------------------------------------->
-  <!-- <div class="container-flex">
-    <div class="container pt-5 pb-5">
-      <h2>Button Rows</h2>
-      <div class="mt-4 mb-4">
-        <h3>Regular</h3>
-        <button type="button" class="btn btn-primary">Primary</button>
-        <button type="button" class="btn btn-secondary">Secondary</button>
-        <button type="button" class="btn btn-success">Success</button>
-        <button type="button" class="btn btn-danger">Danger</button>
-        <button type="button" class="btn btn-warning">Warning</button>
-        <button type="button" class="btn btn-info">Info</button>
-        <button type="button" class="btn btn-light">Light</button>
-        <button type="button" class="btn btn-dark">Dark</button>
-      </div>
-
-      <div class="mt-4 mb-4">
-        <h3>Outline</h3>
-        <button type="button" class="btn btn-outline-primary">Primary</button>
-        <button type="button" class="btn btn-outline-secondary">Secondary</button>
-        <button type="button" class="btn btn-outline-success">Success</button>
-        <button type="button" class="btn btn-outline-danger">Danger</button>
-        <button type="button" class="btn btn-outline-warning">Warning</button>
-        <button type="button" class="btn btn-outline-info">Info</button>
-        <button type="button" class="btn btn-outline-light">Light</button>
-        <button type="button" class="btn btn-outline-dark">Dark</button>
-      </div>
-
-      <div class="mt-4 mb-4">
-        <h3>Block</h3>
-        <div class="d-grid gap-2 col-6">
-          <button class="btn btn-primary" type="button">Button</button>
-          <button class="btn btn-primary" type="button">Button</button>
-        </div>
-      </div>
-    </div>
-  </div> -->
-  <!-- Buttons End ----------------------------------------------------------------------------------->

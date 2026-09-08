@@ -1,51 +1,44 @@
 ﻿@using Umbraco.Cms.Core.Models
 @using Umbraco.Extensions
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 
 @{
-    // Find the main Blog parent node relative to the home node
-    var blogParent = Model.Children.FirstOrDefault(x => x.ContentType.Alias == "blog") 
-                  ?? UmbracoContext.Content?.GetAtRoot()
-                        .FirstOrDefault(x => x.ContentType.Alias == "home")?
-                        .Children.FirstOrDefault(x => x.ContentType.Alias == "blog");
-
-    // Fetch ALL visible blog items ordered by published date
-    var allBlogs = blogParent?.Children<IPublishedContent>()
-        .Where(x => x.ContentType.Alias == "blogItem" && x.IsVisible())
-        .OrderByDescending(x => x.CreateDate);
+    // 1. Fetch all visible 'blogItemPage' nodes across the entire content tree
+    var allNews = Umbraco.ContentAtRoot()
+        .SelectMany(x => x.DescendantsOrSelf())
+        .Where(x => string.Equals(x.ContentType.Alias, "blogItemPage", StringComparison.OrdinalIgnoreCase) && x.IsVisible())
+        // Fall back to CreateDate if publicationDate isn't set
+        .OrderByDescending(x => x.Value<DateTime?>("publicationDate") ?? x.CreateDate) 
+        // Optional: Limit total items on the home page (e.g., top 6)
+        .Take(6) 
+        .ToList();
 }
 
-@if (allBlogs != null && allBlogs.Any())
+@if (allNews.Any())
 {
-    <div class="row row-cols-1 row-cols-md-3 g-4">
-        @foreach (var article in allBlogs)
-        {
-            var image = article.Value<IPublishedContent>("thumbnailImage");
-            var depts = article.Value<IEnumerable<IPublishedContent>>("departments");
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-5">
+        @foreach (var article in allNews)
+        { 
+            var pubDate = article.Value<DateTime?>("publicationDate") ?? article.CreateDate;
 
             <div class="col">
-                <div class="card h-100">
-                    @if (image != null)
-                    {
-                        <img src="@image.Url()" class="card-img-top" alt="@article.Name" />
-                    }
+                <div class="card card-bulma-box h-100">
                     <div class="card-body d-flex flex-column">
-                        <!-- Department Badges -->
-                        @if (depts != null && depts.Any())
-                        {
-                            <div class="mb-2">
-                                @foreach (var dept in depts)
-                                {
-                                    <span class="badge bg-secondary me-1">@dept.Name</span>
-                                }
-                            </div>
-                        }
-                        
                         <h5 class="card-title">@article.Name</h5>
+                        <p class="card-text text-muted small">
+                            @pubDate.ToString("MMMM d, yyyy")
+                        </p>
                         <p class="card-text">@article.Value("introText")</p>
-                        <a href="@article.Url()" class="btn btn-primary mt-auto">Read Post</a>
+                        <div class="d-grid gap-2 col-12 mx-auto mt-auto">
+                            <a href="@article.Url()" class="btn btn-primary px-5">Read Post</a>
+                        </div>
                     </div>
                 </div>
             </div>
         }
     </div>
+}
+else
+{
+    <p class="text-center text-muted">No news posts found.</p>
 }
