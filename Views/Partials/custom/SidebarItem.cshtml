@@ -4,13 +4,15 @@
 
 @{
     var item = Model;
+    var isBlogList = item.ContentType.Alias == "blogListPage";
     
-    // Do not fetch children if the current node is a News main page
-    var visibleChildren = item.ContentType.Alias == "blogListPage" 
+    // 1. Do not fetch children if the current node is a BlogListPage
+    var visibleChildren = isBlogList 
         ? Enumerable.Empty<IPublishedContent>()
         : item.Children().Where(x => x.IsVisible()).ToList();
 
-    var hasChildren = visibleChildren.Any();
+    // 2. BlogListPage should never act as a parent container in the sidebar UI
+    var hasChildren = !isBlogList && visibleChildren.Any();
 
     // Safely retrieve the actual active page from ViewData
     var currentContent = ViewData["CurrentPage"] as IPublishedContent;
@@ -24,19 +26,48 @@
     var shouldExpand = isCurrentPage || isParentOfActive;
 
     var collapseId = $"menu-node-{item.Id}";
+
+    // --- ICON RESOLUTION LOGIC ---
+    var customIconOverride = item.Value<string>("sidebarIconOverride");
+    string iconClass;
+
+    if (!string.IsNullOrWhiteSpace(customIconOverride))
+    {
+        // 1. Backoffice Override
+        iconClass = customIconOverride.Trim();
+    }
+    else
+    {
+        // 2. Default Fallbacks by Template / Alias
+        iconClass = item.ContentType.Alias switch
+        {
+            "homePage" => "bi-house-door",
+            "departmentPage" => "bi-bank",
+            "blogListPage" => "bi-newspaper",
+            "detailPage" => "bi-file-earmark",
+            "blogItemPage" => "bi-file-earmark-text",
+            _ => hasChildren ? "bi-folder" : "bi-file-earmark"
+        };
+
+        // If the item has children and isn't an explicitly mapped page type, default to folder
+        if (hasChildren && item.ContentType.Alias != "DepartmentPage")
+        {
+            iconClass = "bi-folder";
+        }
+    }
 }
 
 <li>
     @if (hasChildren)
     {
         <div class="nav-item-btn @(isCurrentPage ? "active" : "") p-0">
-            @* 1. Direct Link to the parent page *@
+            @* Direct Link to the parent page *@
             <a href="@item.Url()" class="flex-grow-1 text-decoration-none text-reset py-2 ps-2 pe-1 d-flex align-items-center">
-                <i class="bi bi-folder me-2"></i>
+                <i class="bi @iconClass me-2"></i>
                 <span>@item.Name</span>
             </a>
 
-            @* 2. Toggle button for dropdown collapse *@
+            @* Toggle button for dropdown collapse *@
             <button class="btn btn-link text-reset p-2 border-0 shadow-none @(shouldExpand ? "" : "collapsed")"
                     type="button"
                     data-bs-toggle="collapse"
@@ -59,7 +90,8 @@
     }
     else
     {
-        <a href="@item.Url()" class="nav-item-btn @(isCurrentPage ? "active" : "")">
+        <a href="@item.Url()" class="@(isCurrentPage ? "active" : "") flex-grow-1 text-decoration-none text-reset py-2 ps-2 pe-1 d-flex align-items-center">
+            <i class="bi @iconClass me-2"></i>
             <span>@item.Name</span>
         </a>
     }
