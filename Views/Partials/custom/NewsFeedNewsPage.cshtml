@@ -1,0 +1,48 @@
+﻿@using Umbraco.Cms.Core.Models
+@using Umbraco.Extensions
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+
+@{
+    // 1. Fetch all visible 'blogItemPage' nodes across the entire content tree
+    var allNews = Umbraco.ContentAtRoot()
+        .SelectMany(x => x.DescendantsOrSelf())
+        .Where(x => string.Equals(x.ContentType.Alias, "blogItemPage", StringComparison.OrdinalIgnoreCase) && x.IsVisible())
+        // Fall back to CreateDate if publicationDate isn't set
+        .OrderByDescending(x => x.Value<DateTime?>("publicationDate") ?? x.CreateDate) 
+        // Optional: Limit total items on the home page (e.g., top 6)
+        .Take(6) 
+        .ToList();
+}
+
+@if (allNews.Any())
+{
+    <div class="row g-5">
+        @foreach (var article in allNews)
+        { 
+            var pubDate = article.Value<DateTime?>("publicationDate") ?? article.CreateDate;
+
+            var selectedDept = article.Value<IEnumerable<IPublishedContent>>("department")?.FirstOrDefault();
+
+            var selectedAuth = article.Value<IEnumerable<IPublishedContent>>("author")?.FirstOrDefault() 
+                               ?? article.Value<IPublishedContent>("author");
+
+            <div class="col-md-9 mt-3">
+                        <a href="@article.Url()">
+                            <h5 class="card-title">@article.Name</h5>
+                        </a>
+                        <p class="card-text text-muted small mb-0">
+                            By @selectedAuth?.Name | @pubDate.ToString("MMMM d, yyyy")
+                        </p>
+                        <div>
+                            <p class="badge bg-success">@selectedDept.Name</p>
+                        </div>
+                        <p class="mb-4">@article.Value("introText")</p>
+                        <hr>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <p class="text-center text-muted">No news posts found.</p>
+}
