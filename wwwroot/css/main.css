@@ -500,3 +500,7 @@ a:hover .link-jump {
 a:hover > .rounded-circle > img {
     transform: rotate(-10deg);
 }
+
+.headline:hover {
+  text-decoration: underline;
+}

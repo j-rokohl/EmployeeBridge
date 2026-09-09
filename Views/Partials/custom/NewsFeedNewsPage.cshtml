@@ -3,14 +3,16 @@
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 
 @{
-    // Read optional department ID filter from query string (?deptId=1234)
+    // Read query string parameters
     var deptFilter = Context.Request.Query["deptId"].ToString();
+    var searchQuery = Context.Request.Query["q"].ToString()?.Trim() ?? string.Empty;
+    
     int.TryParse(deptFilter, out int selectedDeptId);
 
     // 1. Query all visible 'blogItemPage' nodes
     var query = Umbraco.ContentAtRoot()
         .SelectMany(x => x.DescendantsOrSelf())
-        .Where(x => string.Equals(x.ContentType.Alias, "blogItemPage", StringComparison.OrdinalIgnoreCase) && x.IsVisible());
+        .Where(x => x != null && string.Equals(x.ContentType.Alias, "blogItemPage", StringComparison.OrdinalIgnoreCase) && x.IsVisible());
 
     // 2. Apply Department Filter if query parameter exists
     if (selectedDeptId > 0)
@@ -20,7 +22,20 @@
                         ?? Enumerable.Empty<IPublishedContent>();
             var singleDept = article.Value<IPublishedContent>("department");
             
-            return depts.Any(d => d.Id == selectedDeptId) || (singleDept != null && singleDept.Id == selectedDeptId);
+            return depts.Any(d => d != null && d.Id == selectedDeptId) || (singleDept != null && singleDept.Id == selectedDeptId);
+        });
+    }
+
+    // 3. Apply Search Query Filter if 'q' parameter exists
+    if (!string.IsNullOrWhiteSpace(searchQuery))
+    {
+        var searchTerm = searchQuery.ToLowerInvariant();
+
+        query = query.Where(article => {
+            var title = (article.Name ?? string.Empty).ToLowerInvariant();
+            var intro = (article.Value<string>("introText") ?? string.Empty).ToLowerInvariant();
+
+            return title.Contains(searchTerm) || intro.Contains(searchTerm);
         });
     }
 
@@ -33,12 +48,22 @@
 <div class="row g-4">
     @* Left Column (9 cols wide) - News Articles *@
     <div class="col-lg-9">
-        @if (selectedDeptId > 0)
+        @if (selectedDeptId > 0 || !string.IsNullOrWhiteSpace(searchQuery))
         {
             var activeDept = Umbraco.Content(selectedDeptId);
             <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                <span class="fw-bold">Filtering by: <span class="badge bg-primary">@(activeDept?.Name ?? "Department")</span></span>
-                <a href="@Model.Url()" class="btn btn-sm btn-outline-secondary">Clear Filter</a>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="fw-bold">Filtering by:</span>
+                    @if (!string.IsNullOrWhiteSpace(searchQuery))
+                    {
+                        <span class="badge bg-secondary">Keyword: "@searchQuery"</span>
+                    }
+                    @if (selectedDeptId > 0)
+                    {
+                        <span class="badge bg-primary">Department: @(activeDept?.Name ?? "Selected")</span>
+                    }
+                </div>
+                <a href="@Model.Url()" class="btn btn-sm btn-outline-secondary">Clear Filters</a>
             </div>
         }
 
@@ -54,7 +79,7 @@
 
                 <div class="mb-4">
                     <a href="@article.Url()" class="text-decoration-none">
-                        <h5 class="card-title text-dark">@article.Name</h5>
+                        <h5 class="card-title text-dark headline">@article.Name</h5>
                     </a>
                     <p class="card-text text-muted small mb-1 mt-1">
                         By @(selectedAuth?.Name ?? "Staff") | @pubDate.ToString("MMMM d, yyyy")
@@ -66,13 +91,13 @@
                         </div>
                     }
                     <p class="mb-3 text-secondary">@article.Value("introText")</p>
-                    <hr>
+                    <div class="border-bottom"></div>
                 </div>
             }
         }
         else
         {
-            <p class="text-muted">No news posts found for this selection.</p>
+            <p class="text-muted">No news posts found matching your criteria.</p>
         }
     </div>
 

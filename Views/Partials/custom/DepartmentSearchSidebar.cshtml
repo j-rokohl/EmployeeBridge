@@ -3,8 +3,9 @@
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 
 @{
-    // Get active deptId parameter from current URL
+    // Get active query parameters from current URL
     var currentDeptFilter = Context.Request.Query["deptId"].ToString();
+    var currentSearchQuery = Context.Request.Query["q"].ToString();
 
     // Query all department nodes across the site
     var departments = Umbraco.ContentAtRoot()
@@ -15,10 +16,46 @@
 }
 
 <div class="card border-0 bg-light p-3">
+    @* --- SEARCH FORM --- *@
+    <h6 class="fw-bold mb-2 text-uppercase text-muted small">Search News</h6>
+    <form method="get" action="@Model.Url()" class="mb-4">
+        @* Preserve current department filter if set *@
+        @if (!string.IsNullOrEmpty(currentDeptFilter))
+        {
+            <input type="hidden" name="deptId" value="@currentDeptFilter" />
+        }
+        
+        <div class="input-group">
+            <input type="text" 
+                   name="q" 
+                   class="form-control form-control-sm" 
+                   placeholder="Search keywords..." 
+                   value="@currentSearchQuery" 
+                   aria-label="Search news keywords">
+            <button class="btn btn-sm btn-primary" type="submit">
+                <i class="bi bi-search"></i>
+            </button>
+            @if (!string.IsNullOrWhiteSpace(currentSearchQuery))
+            {
+                <a href="@Model.Url()@(string.IsNullOrEmpty(currentDeptFilter) ? "" : $"?deptId={currentDeptFilter}")" 
+                   class="btn btn-sm btn-outline-secondary" 
+                   title="Clear search text">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            }
+        </div>
+    </form>
+
+    @* --- DEPARTMENT FILTER LIST --- *@
     <h6 class="fw-bold mb-3 text-uppercase text-muted small">Filter by Department</h6>
     <div class="list-group list-group-flush">
         @* "All Departments" option *@
-        <a href="@Model.Url()" 
+        @{
+            var allDeptsUrl = string.IsNullOrWhiteSpace(currentSearchQuery) 
+                ? Model.Url() 
+                : $"{Model.Url()}?q={Uri.EscapeDataString(currentSearchQuery)}";
+        }
+        <a href="@allDeptsUrl" 
            class="list-group-item list-group-item-action bg-transparent px-0 @(string.IsNullOrEmpty(currentDeptFilter) ? "fw-bold blue-link" : "text-secondary")">
             All Departments
         </a>
@@ -27,7 +64,14 @@
         {
             var isSelected = currentDeptFilter == dept.Id.ToString();
             
-            <a href="@Model.Url()?deptId=@dept.Id" 
+            // Preserve search query parameter when toggling departments
+            var deptUrl = $"{Model.Url()}?deptId={dept.Id}";
+            if (!string.IsNullOrWhiteSpace(currentSearchQuery))
+            {
+                deptUrl += $"&q={Uri.EscapeDataString(currentSearchQuery)}";
+            }
+            
+            <a href="@deptUrl" 
                class="list-group-item list-group-item-action bg-transparent px-0 d-flex justify-content-between align-items-center @(isSelected ? "fw-bold blue-link" : "text-secondary")">
                 <span>@dept.Name</span>
                 @if (isSelected)
