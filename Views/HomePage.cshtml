@@ -127,9 +127,26 @@
 <!-- News Feed Start ------------------------------------------------------------------------------->
 @if (Model.Value<string>("showOrHideNewsFeed") == "Show")
 {
+
+var newsLink = Model.Value<IEnumerable<Link>>("linkToMoreNews")?.FirstOrDefault() 
+                   ?? Model.Value<Link>("linkToMoreNews");
+
 <div class="container-flex">
     <div class="container pt-5 pb-5">
-        <h2 class="gradient mb-4">@Model.Value("newsFeedTitle")</h2>
+        <h2 class="gradient pb-2">@Model.Value("newsFeedTitle")</h2>
+
+            @if (newsLink != null && !string.IsNullOrWhiteSpace(newsLink.Url))
+            {
+                var linkText = !string.IsNullOrWhiteSpace(newsLink.Name) ? newsLink.Name : "View All News";
+                var target = string.IsNullOrWhiteSpace(newsLink.Target) ? "_self" : newsLink.Target;
+
+                <p class="pb-4">
+                    <a class="blue-link fw-bold text-decoration-none" href="@newsLink.Url" target="@target">
+                        @linkText <i class="bi bi-chevron-right" style="-webkit-text-stroke: 1px;"></i>
+                    </a>
+                </p>
+            }
+
         @await Html.PartialAsync("custom/NewsFeedHomePage", Model)
     </div>
 </div>
