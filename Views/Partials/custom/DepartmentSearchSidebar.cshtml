@@ -1,0 +1,40 @@
+﻿@using Umbraco.Cms.Core.Models
+@using Umbraco.Extensions
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+
+@{
+    // Get active deptId parameter from current URL
+    var currentDeptFilter = Context.Request.Query["deptId"].ToString();
+
+    // Query all department nodes across the site
+    var departments = Umbraco.ContentAtRoot()
+        .SelectMany(x => x.DescendantsOrSelf())
+        .Where(x => string.Equals(x.ContentType.Alias, "Department", StringComparison.OrdinalIgnoreCase) && x.IsVisible())
+        .OrderBy(x => x.Name)
+        .ToList();
+}
+
+<div class="card border-0 bg-light p-3">
+    <h6 class="fw-bold mb-3 text-uppercase text-muted small">Filter by Department</h6>
+    <div class="list-group list-group-flush">
+        @* "All Departments" option *@
+        <a href="@Model.Url()" 
+           class="list-group-item list-group-item-action bg-transparent px-0 @(string.IsNullOrEmpty(currentDeptFilter) ? "fw-bold blue-link" : "text-secondary")">
+            All Departments
+        </a>
+
+        @foreach (var dept in departments)
+        {
+            var isSelected = currentDeptFilter == dept.Id.ToString();
+            
+            <a href="@Model.Url()?deptId=@dept.Id" 
+               class="list-group-item list-group-item-action bg-transparent px-0 d-flex justify-content-between align-items-center @(isSelected ? "fw-bold blue-link" : "text-secondary")">
+                <span>@dept.Name</span>
+                @if (isSelected)
+                {
+                    <i class="bi bi-check-lg blue-link"></i>
+                }
+            </a>
+        }
+    </div>
+</div>

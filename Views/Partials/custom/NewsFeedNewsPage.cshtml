@@ -3,46 +3,81 @@
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 
 @{
-    // 1. Fetch all visible 'blogItemPage' nodes across the entire content tree
-    var allNews = Umbraco.ContentAtRoot()
+    // Read optional department ID filter from query string (?deptId=1234)
+    var deptFilter = Context.Request.Query["deptId"].ToString();
+    int.TryParse(deptFilter, out int selectedDeptId);
+
+    // 1. Query all visible 'blogItemPage' nodes
+    var query = Umbraco.ContentAtRoot()
         .SelectMany(x => x.DescendantsOrSelf())
-        .Where(x => string.Equals(x.ContentType.Alias, "blogItemPage", StringComparison.OrdinalIgnoreCase) && x.IsVisible())
-        // Fall back to CreateDate if publicationDate isn't set
-        .OrderByDescending(x => x.Value<DateTime?>("publicationDate") ?? x.CreateDate) 
-        // Optional: Limit total items on the home page (e.g., top 6)
-        .Take(6) 
+        .Where(x => string.Equals(x.ContentType.Alias, "blogItemPage", StringComparison.OrdinalIgnoreCase) && x.IsVisible());
+
+    // 2. Apply Department Filter if query parameter exists
+    if (selectedDeptId > 0)
+    {
+        query = query.Where(article => {
+            var depts = article.Value<IEnumerable<IPublishedContent>>("department") 
+                        ?? Enumerable.Empty<IPublishedContent>();
+            var singleDept = article.Value<IPublishedContent>("department");
+            
+            return depts.Any(d => d.Id == selectedDeptId) || (singleDept != null && singleDept.Id == selectedDeptId);
+        });
+    }
+
+    var allNews = query
+        .OrderByDescending(x => x.Value<DateTime?>("publicationDate") ?? x.CreateDate)
+        .Take(6)
         .ToList();
 }
 
-@if (allNews.Any())
-{
-    <div class="row g-5">
-        @foreach (var article in allNews)
-        { 
-            var pubDate = article.Value<DateTime?>("publicationDate") ?? article.CreateDate;
-
-            var selectedDept = article.Value<IEnumerable<IPublishedContent>>("department")?.FirstOrDefault();
-
-            var selectedAuth = article.Value<IEnumerable<IPublishedContent>>("author")?.FirstOrDefault() 
-                               ?? article.Value<IPublishedContent>("author");
-
-            <div class="col-md-9 mt-3">
-                        <a href="@article.Url()">
-                            <h5 class="card-title">@article.Name</h5>
-                        </a>
-                        <p class="card-text text-muted small mb-0">
-                            By @selectedAuth?.Name | @pubDate.ToString("MMMM d, yyyy")
-                        </p>
-                        <div>
-                            <p class="badge bg-success">@selectedDept.Name</p>
-                        </div>
-                        <p class="mb-4">@article.Value("introText")</p>
-                        <hr>
+<div class="row g-4">
+    @* Left Column (9 cols wide) - News Articles *@
+    <div class="col-lg-9">
+        @if (selectedDeptId > 0)
+        {
+            var activeDept = Umbraco.Content(selectedDeptId);
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <span class="fw-bold">Filtering by: <span class="badge bg-primary">@(activeDept?.Name ?? "Department")</span></span>
+                <a href="@Model.Url()" class="btn btn-sm btn-outline-secondary">Clear Filter</a>
             </div>
         }
+
+        @if (allNews.Any())
+        {
+            foreach (var article in allNews)
+            { 
+                var pubDate = article.Value<DateTime?>("publicationDate") ?? article.CreateDate;
+                var selectedDept = article.Value<IEnumerable<IPublishedContent>>("department")?.FirstOrDefault()
+                                   ?? article.Value<IPublishedContent>("department");
+                var selectedAuth = article.Value<IEnumerable<IPublishedContent>>("author")?.FirstOrDefault() 
+                                   ?? article.Value<IPublishedContent>("author");
+
+                <div class="mb-4">
+                    <a href="@article.Url()" class="text-decoration-none">
+                        <h5 class="card-title text-dark">@article.Name</h5>
+                    </a>
+                    <p class="card-text text-muted small mb-1 mt-1">
+                        By @(selectedAuth?.Name ?? "Staff") | @pubDate.ToString("MMMM d, yyyy")
+                    </p>
+                    @if (selectedDept != null)
+                    {
+                        <div class="mb-2">
+                            <span class="badge bg-success">@selectedDept.Name</span>
+                        </div>
+                    }
+                    <p class="mb-3 text-secondary">@article.Value("introText")</p>
+                    <hr>
+                </div>
+            }
+        }
+        else
+        {
+            <p class="text-muted">No news posts found for this selection.</p>
+        }
     </div>
-}
-else
-{
-    <p class="text-center text-muted">No news posts found.</p>
-}
+
+    @* Right Column (3 cols wide) - Department List Sidebar *@
+    <div class="col-lg-3">
+        @await Html.PartialAsync("custom/DepartmentSearchSidebar", Model)
+    </div>
+</div>
