@@ -17,18 +17,18 @@
 
 <div class="card border-0 bg-light p-3">
     @* --- SEARCH FORM --- *@
-    <h6 class="fw-bold mb-2 text-uppercase text-muted small">Search News</h6>
-    <form method="get" action="@Model.Url()" class="mb-4">
+    <h6 class="fw-bold mb-2 text-uppercase text-muted small mb-3">Search News</h6>
+    <form method="get" action="@Model.Url()" class="mb-4 border-bottom">
         @* Preserve current department filter if set *@
         @if (!string.IsNullOrEmpty(currentDeptFilter))
         {
             <input type="hidden" name="deptId" value="@currentDeptFilter" />
         }
         
-        <div class="input-group">
+        <div class="input-group mb-4">
             <input type="text" 
                    name="q" 
-                   class="form-control form-control-sm" 
+                   class="form-control form-control-sm round-input me-2" 
                    placeholder="Search keywords..." 
                    value="@currentSearchQuery" 
                    aria-label="Search news keywords">
@@ -38,7 +38,7 @@
             @if (!string.IsNullOrWhiteSpace(currentSearchQuery))
             {
                 <a href="@Model.Url()@(string.IsNullOrEmpty(currentDeptFilter) ? "" : $"?deptId={currentDeptFilter}")" 
-                   class="btn btn-sm btn-outline-secondary" 
+                   class="btn btn-sm btn-outline-secondary ms-2" 
                    title="Clear search text">
                     <i class="bi bi-x-lg"></i>
                 </a>

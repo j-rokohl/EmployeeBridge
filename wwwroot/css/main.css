@@ -504,3 +504,7 @@ a:hover > .rounded-circle > img {
 .headline:hover {
   text-decoration: underline;
 }
+
+.round-input {
+  border-radius: 20px !important;
+}
