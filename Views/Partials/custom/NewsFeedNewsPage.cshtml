@@ -34,8 +34,9 @@
         query = query.Where(article => {
             var title = (article.Name ?? string.Empty).ToLowerInvariant();
             var intro = (article.Value<string>("introText") ?? string.Empty).ToLowerInvariant();
+            var body = (article.Value<string>("bodyText") ?? string.Empty).ToLowerInvariant();
 
-            return title.Contains(searchTerm) || intro.Contains(searchTerm);
+            return title.Contains(searchTerm) || intro.Contains(searchTerm) || body.Contains(searchTerm);
         });
     }
 
