@@ -154,7 +154,7 @@
                     <ul class="pagination justify-content-center">
                         @* Previous Button *@
                         <li class="page-item @(pageNumber <= 1 ? "disabled" : "")">
-                            <a class="page-link" href="@(pageNumber > 1 ? GetPageUrl(pageNumber - 1) : "#")">Previous</a>
+                            <a class="ps-4 page-link" href="@(pageNumber > 1 ? GetPageUrl(pageNumber - 1) : "#")">Previous</a>
                         </li>
 
                         @* Page Number Links *@
@@ -167,7 +167,7 @@
 
                         @* Next Button *@
                         <li class="page-item @(pageNumber >= totalPages ? "disabled" : "")">
-                            <a class="page-link" href="@(pageNumber < totalPages ? GetPageUrl(pageNumber + 1) : "#")">Next</a>
+                            <a class="pe-4 page-link" href="@(pageNumber < totalPages ? GetPageUrl(pageNumber + 1) : "#")">Next</a>
                         </li>
                     </ul>
                 </nav>

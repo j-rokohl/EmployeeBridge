@@ -508,3 +508,17 @@ a:hover > .rounded-circle > img {
 .round-input {
   border-radius: 20px !important;
 }
+
+.active>.page-link {
+  background-color: #273370; 
+  border-color: #273370;
+  color: #ffffff !important;
+}
+.page-link {
+  color: #273370 !important;
+}
+
+.pagination {
+  --bs-pagination-border-radius: 20px !important;
+  border-radius: 20px !important;
+}
