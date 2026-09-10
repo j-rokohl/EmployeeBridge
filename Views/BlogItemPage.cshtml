@@ -4,6 +4,16 @@
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage;
 @{
 	Layout = "masterTemplate.cshtml";
+
+    // Find the news landing page to generate clean, dynamic URLs
+    var newsPage = Umbraco.ContentAtRoot()
+        .SelectMany(x => x.DescendantsOrSelf())
+        .FirstOrDefault(x => string.Equals(x.ContentType.Alias, "blogListPage", StringComparison.OrdinalIgnoreCase));
+
+    var newsBaseUrl = newsPage?.Url() ?? "/news/";
+
+    var departments = Model.Value<IEnumerable<IPublishedContent>>("department") ?? Enumerable.Empty<IPublishedContent>();
+
 }
 
 <div class="d-flex flex-column flex-lg-row" style="margin-bottom: 300px;">
@@ -23,13 +33,12 @@
 <!-- Content Start --------------------------------------------------------------------------------->
         <div class="container-flex">
             <div class="container pt-3 pb-3">
-            <h1 class="gradient ps-4 pe-4 pb-4">@Model.Name</h1>
+            <h1 class="gradient ps-4 pe-4 pb-2">@Model.Name</h1>
             @{
                 var authorNode = Model.Value<IPublishedContent>("author");
             }
 
-
-            @if (authorNode != null || Model.Value<DateTime?>("publicationDate") != null)
+            @if (authorNode != null || Model.Value<DateTime?>("publicationDate") != null || departments != null)
                 {
                 <div class="ps-4">
                     <div style="border-left: 3px solid green;" class="green-border">
@@ -53,8 +62,22 @@
                     @if (Model.Value<DateTime?>("publicationDate") != null)
                     {
                         var postDate = Model.Value<DateTime>("publicationDate");
-                        <p class="ps-4 pe-4 pb-4">@postDate.ToString("MMMM dd, yyyy")  <span class="ms-2 me-2">|</span>  Updated: @postDate.ToString("h:mm tt")</p>
+                        <p class="ps-4 pe-4">@postDate.ToString("MMMM dd, yyyy")  <span class="ms-2 me-2">|</span>  Updated: @postDate.ToString("h:mm tt")</p>
                     }
+
+                    @if (departments.Any())
+                    {
+                        <div class="ps-4 pe-4 pb-4 mb-4 d-flex flex-wrap gap-1 h5">
+                            @foreach (var dept in departments)
+                            {
+                                var deptUrl = $"{newsBaseUrl}?deptId={dept.Id}";
+                                <a href="@deptUrl" class="text-decoration-none">
+                                    <span class="badge bg-success">@dept.Name</span>
+                                </a>
+                            }
+                        </div>
+                    }
+
                     </div>
                 </div>
             }
