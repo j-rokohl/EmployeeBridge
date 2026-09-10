@@ -1,0 +1,48 @@
+﻿@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Strings
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockListModel>
+
+@{
+    var items = Model;
+    if (items == null || !items.Any()) return;
+}
+
+    @foreach (var itemBlock in items)
+    {
+        var item = itemBlock.Content;
+        var body = item.Value<IHtmlEncodedString>("content");
+        var buttonGroup = item.Value<BlockListModel>("buttonGroup");
+
+        <div class="mb-5 ps-4 pe-4">
+            @if (body != null && !string.IsNullOrWhiteSpace(body.ToHtmlString()))
+            {
+                @body
+                
+                @if (buttonGroup != null && buttonGroup.Any())
+                {
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var buttonBlock in buttonGroup)
+                        {
+                            var buttonContent = buttonBlock.Content;
+
+                            // Extract the Link object (replace "buttonLink" with your actual property alias)
+                            var link = buttonContent.Value<Link>("inlineButton") 
+                                    ?? buttonContent.Value<IEnumerable<Link>>("inlineButton")?.FirstOrDefault();
+
+                            if (link != null)
+                            {
+                                var linkUrl = link.Url;
+                                var linkTarget = string.IsNullOrWhiteSpace(link.Target) ? "_self" : link.Target;
+                                var linkText = !string.IsNullOrWhiteSpace(link.Name) ? link.Name : "Learn More";
+
+                                <a href="@linkUrl" target="@linkTarget" class="btn btn-primary px-4 text-decoration-none">
+                                    @linkText
+                                </a>
+                            }
+                        }
+                    </div>
+                }
+            }
+        </div>
+    }
