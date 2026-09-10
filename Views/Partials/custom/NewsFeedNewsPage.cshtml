@@ -87,8 +87,11 @@
                     </p>
                     @if (selectedDept != null)
                     {
+                        var deptUrl = $"{Model.Url()}?deptId={selectedDept.Id}" + (!string.IsNullOrWhiteSpace(searchQuery) ? $"&q={System.Net.WebUtility.UrlEncode(searchQuery)}" : "");
                         <div class="mb-2">
-                            <span class="badge bg-success">@selectedDept.Name</span>
+                            <a href="@deptUrl" class="text-decoration-none">
+                                <span class="badge bg-success">@selectedDept.Name</span>
+                            </a>
                         </div>
                     }
                     <p class="mb-3 text-secondary">@article.Value("introText")</p>

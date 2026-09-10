@@ -30,9 +30,15 @@
                         <p class="card-text text-muted small mb-0">
                             @pubDate.ToString("MMMM d, yyyy")
                         </p>
-                        <div>
-                            <p class="badge bg-success">@selectedDept.Name</p>
-                        </div>
+                            @if (selectedDept != null)
+                            {
+                                var deptUrl = $"./news/?deptId={selectedDept.Id}";
+                                <div>
+                                    <a href="@deptUrl" class="text-decoration-none">
+                                        <p class="badge bg-success">@selectedDept.Name</p>
+                                    </a>
+                                </div>
+                            }
                         <p class="card-text">@article.Value("introText")</p>
                         <div class="d-grid gap-2 col-12 mx-auto mt-auto">
                             <a href="@article.Url()" class="btn btn-primary px-5">Read Post</a>
