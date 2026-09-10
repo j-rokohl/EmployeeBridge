@@ -6,8 +6,14 @@
     // Read query string parameters
     var deptFilter = Context.Request.Query["deptId"].ToString();
     var searchQuery = Context.Request.Query["q"].ToString()?.Trim() ?? string.Empty;
+    var pageQuery = Context.Request.Query["page"].ToString();
     
     int.TryParse(deptFilter, out int selectedDeptId);
+    
+    // Pagination setup
+    int pageSize = 2;
+    int.TryParse(pageQuery, out int pageNumber);
+    pageNumber = pageNumber > 0 ? pageNumber : 1;
 
     // Get the dedicated News/Blog listing page node
     var newsListingPage = Umbraco.ContentAtRoot()
@@ -61,10 +67,27 @@
         });
     }
 
-    var allNews = query
+    // Calculate total items and pages BEFORE calling Skip/Take
+    var totalItems = query.Count();
+    var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+    // Order and take current page slice
+    var pagedNews = query
         .OrderByDescending(x => x.Value<DateTime?>("publicationDate") ?? x.CreateDate)
-        .Take(6)
+        .Skip((pageNumber - 1) * pageSize)
+        .Take(pageSize)
         .ToList();
+
+    // Helper function to maintain filter parameters in pagination links
+    string GetPageUrl(int page)
+    {
+        var queryParams = new List<string>();
+        if (selectedDeptId > 0) queryParams.Add($"deptId={selectedDeptId}");
+        if (!string.IsNullOrWhiteSpace(searchQuery)) queryParams.Add($"q={System.Net.WebUtility.UrlEncode(searchQuery)}");
+        queryParams.Add($"page={page}");
+
+        return $"{targetUrl}?{string.Join("&", queryParams)}";
+    }
 }
 
 <div class="row g-4">
@@ -89,9 +112,9 @@
             </div>
         }
 
-        @if (allNews.Any())
+        @if (pagedNews.Any())
         {
-            foreach (var article in allNews)
+            foreach (var article in pagedNews)
             { 
                 var pubDate = article.Value<DateTime?>("publicationDate") ?? article.CreateDate;
                 var articleDepts = GetArticleDepartments(article);
@@ -122,6 +145,32 @@
                     <p class="mb-3 text-secondary">@article.Value("introText")</p>
                     <div class="border-bottom"></div>
                 </div>
+            }
+
+            @* Pagination Navigation *@
+            @if (totalPages > 1)
+            {
+                <nav aria-label="News page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        @* Previous Button *@
+                        <li class="page-item @(pageNumber <= 1 ? "disabled" : "")">
+                            <a class="page-link" href="@(pageNumber > 1 ? GetPageUrl(pageNumber - 1) : "#")">Previous</a>
+                        </li>
+
+                        @* Page Number Links *@
+                        @for (int i = 1; i <= totalPages; i++)
+                        {
+                            <li class="page-item @(i == pageNumber ? "active" : "")">
+                                <a class="page-link" href="@GetPageUrl(i)">@i</a>
+                            </li>
+                        }
+
+                        @* Next Button *@
+                        <li class="page-item @(pageNumber >= totalPages ? "disabled" : "")">
+                            <a class="page-link" href="@(pageNumber < totalPages ? GetPageUrl(pageNumber + 1) : "#")">Next</a>
+                        </li>
+                    </ul>
+                </nav>
             }
         }
         else
