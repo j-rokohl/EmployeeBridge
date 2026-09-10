@@ -9,6 +9,30 @@
     
     int.TryParse(deptFilter, out int selectedDeptId);
 
+    // Get the dedicated News/Blog listing page node
+    var newsListingPage = Umbraco.ContentAtRoot()
+        .SelectMany(x => x.DescendantsOrSelf())
+        .FirstOrDefault(x => string.Equals(x.ContentType.Alias, "blogListPage", StringComparison.OrdinalIgnoreCase) 
+                          || string.Equals(x.ContentType.Alias, "newsLandingPage", StringComparison.OrdinalIgnoreCase)) 
+        ?? Model;
+
+    var targetUrl = newsListingPage.Url();
+
+    // Helper to extract departments regardless of single/multi picker configuration
+    IEnumerable<IPublishedContent> GetArticleDepartments(IPublishedContent item)
+    {
+        if (item == null || !item.HasValue("department"))
+            return Enumerable.Empty<IPublishedContent>();
+
+        var multi = item.Value<IEnumerable<IPublishedContent>>("department");
+        if (multi != null && multi.Any()) return multi.Where(d => d != null);
+
+        var single = item.Value<IPublishedContent>("department");
+        if (single != null) return new[] { single };
+
+        return Enumerable.Empty<IPublishedContent>();
+    }
+
     // 1. Query all visible 'blogItemPage' nodes
     var query = Umbraco.ContentAtRoot()
         .SelectMany(x => x.DescendantsOrSelf())
@@ -18,11 +42,8 @@
     if (selectedDeptId > 0)
     {
         query = query.Where(article => {
-            var depts = article.Value<IEnumerable<IPublishedContent>>("department") 
-                        ?? Enumerable.Empty<IPublishedContent>();
-            var singleDept = article.Value<IPublishedContent>("department");
-            
-            return depts.Any(d => d != null && d.Id == selectedDeptId) || (singleDept != null && singleDept.Id == selectedDeptId);
+            var depts = GetArticleDepartments(article);
+            return depts.Any(d => d.Id == selectedDeptId);
         });
     }
 
@@ -64,7 +85,7 @@
                         <span class="badge bg-primary">Department: @(activeDept?.Name ?? "Selected")</span>
                     }
                 </div>
-                <a href="@Model.Url()" class="btn btn-sm btn-outline-secondary">Clear Filters</a>
+                <a href="@targetUrl" class="btn btn-sm btn-outline-secondary">Clear Filters</a>
             </div>
         }
 
@@ -73,8 +94,7 @@
             foreach (var article in allNews)
             { 
                 var pubDate = article.Value<DateTime?>("publicationDate") ?? article.CreateDate;
-                var selectedDept = article.Value<IEnumerable<IPublishedContent>>("department")?.FirstOrDefault()
-                                   ?? article.Value<IPublishedContent>("department");
+                var articleDepts = GetArticleDepartments(article);
                 var selectedAuth = article.Value<IEnumerable<IPublishedContent>>("author")?.FirstOrDefault() 
                                    ?? article.Value<IPublishedContent>("author");
 
@@ -85,15 +105,20 @@
                     <p class="card-text text-muted small mb-1 mt-1">
                         By @(selectedAuth?.Name ?? "Staff") | @pubDate.ToString("MMMM d, yyyy")
                     </p>
-                    @if (selectedDept != null)
+                    
+                    @if (articleDepts.Any())
                     {
-                        var deptUrl = $"{Model.Url()}?deptId={selectedDept.Id}" + (!string.IsNullOrWhiteSpace(searchQuery) ? $"&q={System.Net.WebUtility.UrlEncode(searchQuery)}" : "");
-                        <div class="mb-2">
-                            <a href="@deptUrl" class="text-decoration-none">
-                                <span class="badge bg-success">@selectedDept.Name</span>
-                            </a>
+                        <div class="mb-2 d-flex flex-wrap gap-1">
+                            @foreach (var dept in articleDepts)
+                            {
+                                var deptUrl = $"{targetUrl}?deptId={dept.Id}" + (!string.IsNullOrWhiteSpace(searchQuery) ? $"&q={System.Net.WebUtility.UrlEncode(searchQuery)}" : "");
+                                <a href="@deptUrl" class="text-decoration-none">
+                                    <span class="badge bg-success">@dept.Name</span>
+                                </a>
+                            }
                         </div>
                     }
+
                     <p class="mb-3 text-secondary">@article.Value("introText")</p>
                     <div class="border-bottom"></div>
                 </div>
@@ -107,6 +132,6 @@
 
     @* Right Column (3 cols wide) - Department List Sidebar *@
     <div class="col-lg-3">
-        @await Html.PartialAsync("custom/DepartmentSearchSidebar", Model)
+        @await Html.PartialAsync("custom/DepartmentSearchSidebar", newsListingPage)
     </div>
 </div>
