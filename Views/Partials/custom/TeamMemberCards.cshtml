@@ -25,12 +25,11 @@
                 <!-- Top Header / Avatar section -->
                 <div class="white-card p-4" style="border-bottom: 1px solid rgba(10, 10, 10, 0.1);">
                     <div class="row g-1">
-                        <div class="col-md-3">
+                        <div class="d-flex align-items-center">
                             <img src="@(photo != null ? photo.Url() : "/media/f0bb5nmr/avatar.png")" 
                                  alt="@(name ?? "Team Member")" 
-                                 class="ms-2 rounded-circle circle-photo-leader">
-                        </div>
-                        <div class="col-md-9 d-flex flex-column justify-content-center">
+                                 class="float-start ms-2 rounded-circle circle-photo-leader me-4">
+                            <div>
                             @if (!string.IsNullOrWhiteSpace(name))
                             {
                                 <p class="ms-2 h4 mb-1 blue-link ranade">@name</p>
@@ -39,6 +38,7 @@
                             {
                                 <p class="ms-2 mb-0">@title</p>
                             }
+                            </div>
                         </div>
                     </div>
                 </div>
