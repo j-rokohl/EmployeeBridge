@@ -1,0 +1,55 @@
+﻿@using Umbraco.Cms.Web.Common.PublishedModels;
+@using Umbraco.Cms.Core.Models.Blocks;
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+	Layout = "masterTemplate.cshtml";
+}
+
+<div class="d-flex flex-column flex-lg-row">
+    <!-- DYNAMIC SIDEBAR PARTIAL -->
+    @await Html.PartialAsync("custom/Sidebar", Model)
+    <div class="flex-grow-1 p-4">
+<!-- Breadcrumb Start ------------------------------------------------------------------------------>
+        <div class="container-flex">
+            <div class="container">
+                <div class="flex-grow-1 p-4">
+                    @* Render the dynamic breadcrumb partial view *@
+                    @await Html.PartialAsync("custom/Breadcrumbs")
+                </div>
+            </div>
+        </div>
+<!-- Breadcrumb End -------------------------------------------------------------------------------->
+<!-- Heading Start --------------------------------------------------------------------------------->
+        <div class="container-flex">
+            <div class="container pt-3 pb-3">
+            <h1 class="gradient ps-4 pe-4 pb-2">@Model.Name</h1>
+            </div>
+        </div>
+<!-- Heading End ----------------------------------------------------------------------------------->
+<!-- Tree Start ------------------------------------------------------------------------------------>
+            <div class="container-flex">
+                <div class="container pb-5">
+                @{
+                    var rootStaff = Model.Value<BlockListModel>("staff");
+                }
+                    <div class="tree">
+                        @if (rootStaff != null && rootStaff.Any())
+                        {
+                            <ul>
+                                @* Loop through the collection and pass each item's .Content to staffTree.cshtml *@
+                                @foreach (var item in rootStaff)
+                                {
+                                    @await Html.PartialAsync("~/Views/Partials/custom/staffTree.cshtml", item.Content)
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <p class="text-muted">No staff members found.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+<!-- Staff Tree End --------------------------------------------------------------------------------->
+    </div>
+</div>
