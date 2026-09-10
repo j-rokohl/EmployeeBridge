@@ -157,7 +157,7 @@ var newsLink = Model.Value<IEnumerable<Link>>("linkToMoreNews")?.FirstOrDefault(
 {
 <div class="container-flex bg-light">
     <div class="container pt-5 pb-5">
-        <h2 class="gradient mb-4">Frequently Asked Questions</h2>
+        <h2 class="gradient mb-4">@Model.Value("accordionGroupTitle")</h2>
 
         @{
             // Replace "faqAccordion" with your actual Block List property alias on HomePage
