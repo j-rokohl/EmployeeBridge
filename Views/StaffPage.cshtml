@@ -21,8 +21,8 @@
 <!-- Breadcrumb End -------------------------------------------------------------------------------->
 <!-- Heading Start --------------------------------------------------------------------------------->
         <div class="container-flex">
-            <div class="container pt-3 pb-3">
-            <h1 class="gradient ps-4 pe-4 pb-2">@Model.Name</h1>
+            <div class="container pt-3">
+            <h1 class="gradient ps-4 pe-4">@Model.Name</h1>
             </div>
         </div>
 <!-- Heading End ----------------------------------------------------------------------------------->
@@ -32,7 +32,7 @@
                 @{
                     var rootStaff = Model.Value<BlockListModel>("staff");
                 }
-                    <div class="tree">
+                    <div class="tree ps-4 pe-4">
                         @if (rootStaff != null && rootStaff.Any())
                         {
                             <ul>

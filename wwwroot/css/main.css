@@ -315,6 +315,10 @@ h5 {
   margin-bottom: 0 !important;
 }
 
+a:hover {
+  color: #273370;
+}
+
 .breadcrumb>li>a {
   color: #273370;
 }
@@ -550,6 +554,10 @@ a:hover>.rounded-circle>img {
   margin: 0;
 }
 
+.tree-ul {
+  padding-top: 8px;
+}
+
 .tree ul li {
   position: relative;
   padding: 8px 0 8px 30px;
@@ -669,7 +677,7 @@ a:hover>.rounded-circle>img {
 
 .nav-item-btn:hover {
   background-color: #e9ecef;
-  color: #0d6efd;
+  color:  #273370;
 }
 
 /* Rotation Animations */

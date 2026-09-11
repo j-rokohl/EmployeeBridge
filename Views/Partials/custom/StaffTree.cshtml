@@ -16,7 +16,7 @@
 }
 
 <li>
-    <div class="card tree-card shadow-sm border-light-subtle my-2">
+    <div class="card tree-card shadow-sm border-light-subtle">
         <div class="card-body p-3">
             <div class="d-flex align-items-center gap-3">
                 <div class="avatar-container">
@@ -31,18 +31,23 @@
                 </div>
                 <div class="flex-grow-1 min-w-0">
                     <div class="fw-bold text-dark text-truncate">@name</div>
-                    <div class="text-uppercase text-secondary fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                    <div class="text-uppercase text-secondary fw-semibold mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px;">
                         @title
                     </div>
-                    <div class="text-muted small text-truncate mb-2">@email</div>
+                    <div class="text-muted small text-truncate mb-2">
+                        @if (!string.IsNullOrWhiteSpace(email))
+                        {
+                        <a href="mailto:@email" class="text-decoration-none blue-link"><span><i class="bi bi-envelope-fill"></i> @email</span></a>
+                        }
+                    </div>
                     <div class="d-flex gap-3 small text-secondary">
                         @if (!string.IsNullOrWhiteSpace(phone))
                         {
-                            <span>☎️ @phone</span>
+                            <a href="tel:@phone" class="text-decoration-none blue-link"><span><i class="bi bi-telephone-fill"></i> @phone</span></a>
                         }
                         @if (!string.IsNullOrWhiteSpace(cell))
                         {
-                            <span>📱 @cell</span>
+                            <a href="tel:@cell" class="text-decoration-none blue-link"><span><i class="bi bi-phone-fill"></i> @cell</span></a>
                         }
                     </div>
                 </div>
@@ -53,7 +58,7 @@
     @* Recursive step: render direct reports using explicit path *@
     @if (directReports != null && directReports.Any())
     {
-        <ul>
+        <ul class="tree-ul">
             @foreach (var report in directReports)
             {
                 @await Html.PartialAsync("~/Views/Partials/custom/staffTree.cshtml", report.Content)
