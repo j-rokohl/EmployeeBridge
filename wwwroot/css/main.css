@@ -153,6 +153,27 @@ h5 {
   font-optical-sizing: auto;
 }
 
+.nav-search {
+  border-radius: 20px 0 0 20px !important;
+}
+
+.nav-search-btn {
+  border-radius: 0 20px 20px 0 !important;
+  background-color: #1a8f39 !important;
+  border: 0 !important;
+  border-color: #1a8f39 !important;
+  color: #ffffff;
+  box-shadow: none !important;
+}
+
+button {
+    box-shadow: none !important;
+}
+
+.nav-search-btn:hover {
+  background-color: #10752b !important;
+}
+
 .card-title {
   color: #212529 !important;
 }

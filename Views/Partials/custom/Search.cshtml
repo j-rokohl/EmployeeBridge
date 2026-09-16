@@ -8,15 +8,22 @@
 @inject UmbracoHelper UmbracoHelper
 
 @{
-    // 1. Get search query from URL string (?q=term)
+    // 1. Get search query and page number from URL string
     var searchQuery = Context.Request.Query["q"].ToString()?.Trim() ?? string.Empty;
+    
+    // Parse page parameter (default to page 1)
+    int.TryParse(Context.Request.Query["page"], out int currentPage);
+    if (currentPage < 1) { currentPage = 1; }
+
+    int pageSize = 2; // Number of results per page
 
     var searchResults = Enumerable.Empty<ISearchResult>();
     long totalResults = 0;
+    int totalPages = 0;
 
     if (!string.IsNullOrWhiteSpace(searchQuery))
     {
-        // 2. Fetch the External (Published Content) Examine Index
+        // 2. Fetch the External Examine Index
         if (ExamineManager.TryGetIndex(Umbraco.Cms.Core.Constants.UmbracoIndexes.ExternalIndexName, out var index))
         {
             var searcher = index.Searcher;
@@ -28,7 +35,12 @@
             // 4. Execute Examine Query
             var rawResults = query.Execute();
             totalResults = rawResults.TotalItemCount;
-            searchResults = rawResults;
+
+            // Calculate total pages
+            totalPages = (int)Math.Ceiling((double)totalResults / pageSize);
+
+            // Apply pagination slicing
+            searchResults = rawResults.Skip((currentPage - 1) * pageSize).Take(pageSize);
         }
     }
 
@@ -45,10 +57,10 @@
             <input type="text" 
                    name="q" 
                    value="@searchQuery" 
-                   class="form-control" 
-                   placeholder="Search site content..." 
+                   class="form-control round-input" 
+                   placeholder="Search Employee Bridge..." 
                    aria-label="Search site content" />
-            <button class="btn btn-primary" type="submit">
+            <button class="btn btn-primary ms-4 px-4" type="submit">
                 <i class="bi bi-search me-1"></i> Search
             </button>
         </div>
@@ -68,11 +80,9 @@
             <ul class="list-unstyled search-results-list">
                 @foreach (var result in searchResults)
                 {
-                    // Look up published content node using concrete UmbracoHelper
                     var searchPageItem = UmbracoHelper.Content(result.Id);
                     if (searchPageItem == null) continue;
 
-                    // Support custom title override if populated, otherwise fall back to Name
                     var pageTitle = searchPageItem.HasValue("sidebarLinkTitle") && !string.IsNullOrWhiteSpace(searchPageItem.Value<string>("sidebarLinkTitle"))
                         ? searchPageItem.Value<string>("sidebarLinkTitle")
                         : searchPageItem.Name;
@@ -87,7 +97,6 @@
                             @searchPageItem.Url(mode: UrlMode.Absolute)
                         </div>
 
-                        @* Basic Snippet Extraction *@
                         @if (searchPageItem.HasValue("bodyText"))
                         {
                             var rawBody = searchPageItem.Value<string>("bodyText") ?? string.Empty;
@@ -101,6 +110,32 @@
                     </li>
                 }
             </ul>
+
+            <!-- Pagination UI -->
+            @if (totalPages > 1)
+            {
+                <nav aria-label="Search results pages" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <!-- Previous Page -->
+                        <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                            <a class="ps-4 page-page-link page-link" href="@currentUrl?q=@searchQuery&page=@(currentPage - 1)">Previous</a>
+                        </li>
+
+                        <!-- Page Numbers -->
+                        @for (int i = 1; i <= totalPages; i++)
+                        {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                <a class="page-link" href="@currentUrl?q=@searchQuery&page=@i">@i</a>
+                            </li>
+                        }
+
+                        <!-- Next Page -->
+                        <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                            <a class="pe-4 page-link" href="@currentUrl?q=@searchQuery&page=@(currentPage + 1)">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            }
         }
         else
         {
