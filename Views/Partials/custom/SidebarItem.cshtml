@@ -53,6 +53,8 @@
             "blogListPage" => "bi-newspaper",
             "detailPage" => "bi-file-earmark",
             "blogItemPage" => "bi-file-earmark-text",
+            "staffPage" => "bi-person",
+            "searchPage" => "bi-search",
             _ => hasChildren ? "bi-folder" : "bi-file-earmark"
         };
 
@@ -63,8 +65,6 @@
         }
     }
 }
-
-<!-- DEBUG: NodeId=@item.Id | HasTitleProp=@item.HasProperty("sidebarLinkTitle") | RawTitleVal='@item.Value("sidebarLinkTitle")' -->
 
 <li>
     @if (hasChildren)

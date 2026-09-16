@@ -1,0 +1,112 @@
+﻿@using Umbraco.Cms.Core.Models.PublishedContent
+@using Umbraco.Cms.Web.Common
+@using Examine
+@using Examine.Search
+@using Umbraco.Extensions
+
+@inject IExamineManager ExamineManager
+@inject UmbracoHelper UmbracoHelper
+
+@{
+    // 1. Get search query from URL string (?q=term)
+    var searchQuery = Context.Request.Query["q"].ToString()?.Trim() ?? string.Empty;
+
+    var searchResults = Enumerable.Empty<ISearchResult>();
+    long totalResults = 0;
+
+    if (!string.IsNullOrWhiteSpace(searchQuery))
+    {
+        // 2. Fetch the External (Published Content) Examine Index
+        if (ExamineManager.TryGetIndex(Umbraco.Cms.Core.Constants.UmbracoIndexes.ExternalIndexName, out var index))
+        {
+            var searcher = index.Searcher;
+
+            // 3. Build fluently matched query across page names and text content
+            var query = searcher.CreateQuery("content")
+                .GroupedOr(new[] { "nodeName", "grid", "bodyText", "sidebarLinkTitle" }, searchQuery.MultipleCharacterWildcard());
+
+            // 4. Execute Examine Query
+            var rawResults = query.Execute();
+            totalResults = rawResults.TotalItemCount;
+            searchResults = rawResults;
+        }
+    }
+
+    // Cast or resolve URL safely if Model is dynamic
+    var currentUrl = Model is IPublishedContent contentModel 
+        ? contentModel.Url() 
+        : UmbracoHelper.AssignedContentItem?.Url() ?? "#";
+}
+
+<div class="search-container">
+    <!-- Search Input Form -->
+    <form action="@currentUrl" method="get" class="search-form mb-4">
+        <div class="input-group input-group-lg">
+            <input type="text" 
+                   name="q" 
+                   value="@searchQuery" 
+                   class="form-control" 
+                   placeholder="Search site content..." 
+                   aria-label="Search site content" />
+            <button class="btn btn-primary" type="submit">
+                <i class="bi bi-search me-1"></i> Search
+            </button>
+        </div>
+    </form>
+
+    <!-- Search Results Summary -->
+    @if (!string.IsNullOrWhiteSpace(searchQuery))
+    {
+        <div class="search-results-header mb-3">
+            <p class="text-muted">
+                Found <strong>@totalResults</strong> result@(totalResults == 1 ? "" : "s") for "<strong>@searchQuery</strong>"
+            </p>
+        </div>
+
+        @if (searchResults.Any())
+        {
+            <ul class="list-unstyled search-results-list">
+                @foreach (var result in searchResults)
+                {
+                    // Look up published content node using concrete UmbracoHelper
+                    var searchPageItem = UmbracoHelper.Content(result.Id);
+                    if (searchPageItem == null) continue;
+
+                    // Support custom title override if populated, otherwise fall back to Name
+                    var pageTitle = searchPageItem.HasValue("sidebarLinkTitle") && !string.IsNullOrWhiteSpace(searchPageItem.Value<string>("sidebarLinkTitle"))
+                        ? searchPageItem.Value<string>("sidebarLinkTitle")
+                        : searchPageItem.Name;
+
+                    <li class="search-result-item border-bottom pb-3 mb-3">
+                        <h5 class="mb-1 card-title text-dark headline">
+                            <a href="@searchPageItem.Url()" class="text-decoration-none text-dark">
+                                @pageTitle
+                            </a>
+                        </h5>
+                        <div class="search-result-url text-success small mb-2">
+                            @searchPageItem.Url(mode: UrlMode.Absolute)
+                        </div>
+
+                        @* Basic Snippet Extraction *@
+                        @if (searchPageItem.HasValue("bodyText"))
+                        {
+                            var rawBody = searchPageItem.Value<string>("bodyText") ?? string.Empty;
+                            var cleanBody = System.Text.RegularExpressions.Regex.Replace(rawBody, "<.*?>", string.Empty);
+                            var snippet = cleanBody.Length > 200 ? cleanBody.Substring(0, 200) + "..." : cleanBody;
+
+                            <p class="search-result-snippet text-muted small mb-0">
+                                @snippet
+                            </p>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                No results matched your search. Try searching for broader terms or keywords.
+            </div>
+        }
+    }
+</div>
