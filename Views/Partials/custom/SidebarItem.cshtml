@@ -27,6 +27,13 @@
 
     var collapseId = $"menu-node-{item.Id}";
 
+    // --- TITLE RESOLUTION LOGIC ---
+    // Fetch value directly from the item (works natively across compositions)
+    var customTitleOverride = item.Value<string>("sidebarLinkTitle");
+    var linkTitle = !string.IsNullOrWhiteSpace(customTitleOverride) 
+        ? customTitleOverride.Trim() 
+        : item.Name;
+
     // --- ICON RESOLUTION LOGIC ---
     var customIconOverride = item.Value<string>("sidebarIconOverride");
     string iconClass;
@@ -57,6 +64,8 @@
     }
 }
 
+<!-- DEBUG: NodeId=@item.Id | HasTitleProp=@item.HasProperty("sidebarLinkTitle") | RawTitleVal='@item.Value("sidebarLinkTitle")' -->
+
 <li>
     @if (hasChildren)
     {
@@ -64,7 +73,7 @@
             @* Direct Link to the parent page *@
             <a href="@item.Url()" class="flex-grow-1 text-decoration-none text-reset py-2 ps-2 pe-1 d-flex align-items-center">
                 <i class="bi @iconClass me-2"></i>
-                <span>@item.Name</span>
+                <span>@linkTitle</span>
             </a>
 
             @* Toggle button for dropdown collapse *@
@@ -73,7 +82,7 @@
                     data-bs-toggle="collapse"
                     data-bs-target="#@collapseId"
                     aria-expanded="@(shouldExpand ? "true" : "false")"
-                    aria-label="Toggle @item.Name Submenu">
+                    aria-label="Toggle @linkTitle Submenu">
                 <i class="bi bi-chevron-right toggle-icon"></i>
             </button>
         </div>
@@ -92,7 +101,7 @@
     {
         <a href="@item.Url()" class="nav-item-btn @(isCurrentPage ? "active" : "") flex-grow-1 text-decoration-none text-reset py-2 ps-2 pe-1 d-flex align-items-center" style="justify-content: flex-start;">
             <i class="bi @iconClass me-2"></i>
-            <span>@item.Name</span>
+            <span>@linkTitle</span>
         </a>
     }
 </li>
