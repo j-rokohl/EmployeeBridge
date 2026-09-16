@@ -349,11 +349,16 @@ a:hover {
 /* Desktop Sidebar Styles */
 @media (min-width: 992px) {
   .sidebar-container {
+    position: relative; /* Required for absolute positioning of resizer */
     width: 280px;
+    min-width: 200px;  /* Minimum width bound */
+    max-width: 500px;  /* Maximum width bound */
+    flex-shrink: 0;
+    box-sizing: border-box;
     min-height: 100vh;
     border-right: 1px solid #dee2e6;
+    overflow-x: hidden;
   }
-
   /* Always show menu on large screens */
   #mobileNavCollapse {
     display: block !important;
@@ -362,6 +367,30 @@ a:hover {
   .mobile-header-bar {
     display: none !important;
   }
+}
+
+/* Resize handle overlaying the right border */
+.resizer {
+  position: absolute;
+  top: 0;
+  right: -4px; /* Centered over the right border */
+  width: 8px;  /* Clickable area */
+  height: 100%;
+  cursor: col-resize; /* Renders <-> arrow cursor */
+  z-index: 10;
+  user-select: none;
+}
+
+/* Optional hover highlight */
+.resizer:hover,
+.resizer.resizing {
+  background-color: rgba(13, 110, 253, 0.4); /* Highlight color on hover/drag */
+}
+
+/* Prevent text selection during drag */
+body.resizing-active {
+  user-select: none;
+  cursor: col-resize;
 }
 
 /* Mobile Header & Menu Styling */
@@ -621,24 +650,6 @@ a:hover>.rounded-circle>img {
   width: 100%;
   height: 100%;
   display: block;
-}
-
-/* Desktop Sidebar Styles */
-@media (min-width: 992px) {
-  .sidebar-container {
-    width: 280px;
-    min-height: 100vh;
-    border-right: 1px solid #dee2e6;
-  }
-
-  /* Always show menu on large screens */
-  #mobileNavCollapse {
-    display: block !important;
-  }
-
-  .mobile-header-bar {
-    display: none !important;
-  }
 }
 
 /* Mobile Header & Menu Styling */
