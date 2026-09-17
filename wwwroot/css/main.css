@@ -167,7 +167,7 @@ h5 {
 }
 
 button {
-    box-shadow: none !important;
+  box-shadow: none !important;
 }
 
 .nav-search-btn:hover {
@@ -251,6 +251,22 @@ button {
   background-color: transparent;
   border-bottom: none;
   border-top: none;
+}
+
+.card-gradient {
+  background: #273B70;
+  background: linear-gradient(90deg, rgba(39, 59, 112, 1) 0%, rgba(26, 143, 57, 1) 100%);
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.card-gradient:hover {
+  transform: translateY(-10px);
+  background: linear-gradient(90deg, rgba(39, 59, 112, 1) 0%, rgba(26, 143, 57, 1) 30%);
+}
+
+.card-gradient-text {
+  color: #ffffff !important;
+  text-shadow: rgba(38, 52, 112, 1) 0px 0px 3px, rgba(38, 52, 112, 1) 0px 0px 2px !important;
 }
 
 /* Replace Bootstrap's caret with Bulma's CSS arrow */
@@ -370,16 +386,20 @@ a:hover {
 /* Desktop Sidebar Styles */
 @media (min-width: 992px) {
   .sidebar-container {
-    position: relative; /* Required for absolute positioning of resizer */
+    position: relative;
+    /* Required for absolute positioning of resizer */
     width: 280px;
-    min-width: 200px;  /* Minimum width bound */
-    max-width: 500px;  /* Maximum width bound */
+    min-width: 200px;
+    /* Minimum width bound */
+    max-width: 500px;
+    /* Maximum width bound */
     flex-shrink: 0;
     box-sizing: border-box;
     min-height: 100vh;
     border-right: 1px solid #dee2e6;
     overflow-x: hidden;
   }
+
   /* Always show menu on large screens */
   #mobileNavCollapse {
     display: block !important;
@@ -394,10 +414,13 @@ a:hover {
 .resizer {
   position: absolute;
   top: 0;
-  right: -4px; /* Centered over the right border */
-  width: 8px;  /* Clickable area */
+  right: -4px;
+  /* Centered over the right border */
+  width: 8px;
+  /* Clickable area */
   height: 100%;
-  cursor: col-resize; /* Renders <-> arrow cursor */
+  cursor: col-resize;
+  /* Renders <-> arrow cursor */
   z-index: 10;
   user-select: none;
 }
@@ -405,7 +428,8 @@ a:hover {
 /* Optional hover highlight */
 .resizer:hover,
 .resizer.resizing {
-  background-color: rgba(13, 110, 253, 0.4); /* Highlight color on hover/drag */
+  background-color: rgba(13, 110, 253, 0.4);
+  /* Highlight color on hover/drag */
 }
 
 /* Prevent text selection during drag */
@@ -709,7 +733,7 @@ a:hover>.rounded-circle>img {
 
 .nav-item-btn:hover {
   background-color: #e9ecef;
-  color:  #273370;
+  color: #273370;
 }
 
 /* Rotation Animations */

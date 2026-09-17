@@ -11,7 +11,7 @@
     int columns = ViewData["ItemsPerRow"] is int colVal && colVal > 0 ? colVal : 4;
 }
 
-<div class="row row-cols-1 row-cols-md-2 row-cols-lg-@columns g-4">
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-@columns g-4 ps-4 pe-4 gradient-container">
     @foreach (var item in cards)
     {
         var card = item.Content;
@@ -19,22 +19,32 @@
                         ?? card.Value<Link>("gradientCardLink");
 
         <div class="col">
-            <div class="card card-bulma-box h-100">
-                @if (card.HasValue("gradientCardLink"))
+            @if (card.HasValue("gradientCardLink"))
+            {
+                if (buttonLink != null)
                 {
-                    if (buttonLink != null)
-                    {
-                        <a href="@buttonLink.Url" 
-                           target="@(string.IsNullOrWhiteSpace(buttonLink.Target) ? "_self" : buttonLink.Target)">
-                            <div class="card-body d-flex flex-column">
-                                <div class="d-grid gap-2 col-12 mx-auto mt-auto pt-3">
-                                    @buttonLink.Name
-                                </div>
+            <a href="@buttonLink.Url" class="text-decoration-none gradient-anchor"
+            target="@(string.IsNullOrWhiteSpace(buttonLink.Target) ? "_self" : buttonLink.Target)">
+                <div class="card card-bulma-box card-gradient h-100">
+                    <!-- Changed flex-column to flex-row -->
+                    <div class="card-body d-flex flex-row justify-content-between align-items-center">
+                        
+                        <!-- Left Side: Text Container -->
+                        <div>
+                            <!-- Removed col-12 mx-auto to let the text align left naturally -->
+                            <div class="d-grid gap-2 mt-auto pt-3 pb-3">
+                                <h5 class="card-gradient-text mb-0">@buttonLink.Name</h5>
                             </div>
-                        </a>
-                    }
+                        </div>
+                        
+                        <!-- Right Side: Large Arrow -->
+                        <span class="fs-1"><i class="bi bi-chevron-right fs-1 text-white-50"></i></span>
+                        
+                    </div>
+                </div>
+            </a>
                 }
-            </div>
+            }            
         </div>
     }
 </div>
