@@ -1,0 +1,59 @@
+﻿@using Umbraco.Cms.Web.Common.PublishedModels;
+@using Umbraco.Cms.Core.Models.Blocks;
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+	Layout = "masterTemplate.cshtml";
+}
+
+<div class="d-flex flex-column flex-lg-row">
+    <!-- DYNAMIC SIDEBAR PARTIAL -->
+    @await Html.PartialAsync("custom/Sidebar", Model)
+    <div class="flex-grow-1 p-4">
+<!-- Breadcrumb Start ------------------------------------------------------------------------------>
+        <div class="container-flex">
+            <div class="container">
+                <div class="flex-grow-1 p-4">
+                    @* Render the dynamic breadcrumb partial view *@
+                    @await Html.PartialAsync("custom/Breadcrumbs")
+                </div>
+            </div>
+        </div>
+<!-- Breadcrumb End -------------------------------------------------------------------------------->
+<!-- Heading Start --------------------------------------------------------------------------------->
+        <div class="container-flex">
+            <div class="container pt-3 pb-3">
+            <h1 class="gradient ps-4 pe-4 pb-2">@Model.Name</h1>
+            </div>
+        </div>
+<!-- Heading End ----------------------------------------------------------------------------------->
+<!-- Gradient Card Start --------------------------------------------------------------------------->
+<div class="container-flex">
+    <div class="container pb-5">
+            @{
+                var gradientCard = Model.Value<BlockListModel>("gradientCardGroup");
+
+                // 1. Read dropdown value as string and parse to int safely
+                var rawDropdownValue = Model.Value<string>("cardGroupSetting");
+                int.TryParse(rawDropdownValue, out int itemsPerRow);
+
+                // 2. Fallback only if itemsPerRow couldn't be parsed (is 0)
+                if (itemsPerRow == 0 && gradientCard != null)
+                {
+                    int count = gradientCard.Count();
+                    itemsPerRow = count switch { 2 => 2, 3 => 3, 5 => 5, _ => 4 };
+                }
+            }
+
+            @if (gradientCard != null && gradientCard.Any())
+            {
+                @await Html.PartialAsync(
+                    "~/Views/Partials/custom/GradientCardGroup.cshtml", 
+                    gradientCard, 
+                    new ViewDataDictionary(ViewData) { { "ItemsPerRow", itemsPerRow } }
+                )
+            }
+    </div>
+</div>
+<!-- Gradient Card End ------------------------------------------------------------------------------>
+    </div>
+</div>

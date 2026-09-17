@@ -1,0 +1,40 @@
+﻿@using Umbraco.Cms.Core.Models.Blocks
+@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Strings
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<BlockListModel>
+
+@{
+    var cards = Model;
+    if (cards == null || !cards.Any()) return;
+
+    // Safely extract the columns count passed via ViewData
+    int columns = ViewData["ItemsPerRow"] is int colVal && colVal > 0 ? colVal : 4;
+}
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-@columns g-4">
+    @foreach (var item in cards)
+    {
+        var card = item.Content;
+        var buttonLink = card.Value<IEnumerable<Link>>("gradientCardLink")?.FirstOrDefault() 
+                        ?? card.Value<Link>("gradientCardLink");
+
+        <div class="col">
+            <div class="card card-bulma-box h-100">
+                @if (card.HasValue("gradientCardLink"))
+                {
+                    if (buttonLink != null)
+                    {
+                        <a href="@buttonLink.Url" 
+                           target="@(string.IsNullOrWhiteSpace(buttonLink.Target) ? "_self" : buttonLink.Target)">
+                            <div class="card-body d-flex flex-column">
+                                <div class="d-grid gap-2 col-12 mx-auto mt-auto pt-3">
+                                    @buttonLink.Name
+                                </div>
+                            </div>
+                        </a>
+                    }
+                }
+            </div>
+        </div>
+    }
+</div>
