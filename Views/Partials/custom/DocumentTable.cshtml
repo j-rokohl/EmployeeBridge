@@ -1,0 +1,131 @@
+﻿@using Umbraco.Cms.Core.Models.PublishedContent
+@using Umbraco.Cms.Core.Models.Blocks
+@using Microsoft.AspNetCore.Html
+@using Umbraco.Cms.Core.PropertyEditors.ValueConverters
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<IPublishedElement>
+
+@{
+    var tableTitle = Model.Value<string>("tableTitle");
+    var documentRows = Model.Value<BlockListModel>("documentTable");
+    
+    // Create a unique prefix per table instance to prevent ID collisions on the same page
+    var tableId = "table_" + Guid.NewGuid().ToString("N").Substring(0, 8);
+    int rowIndex = 0;
+
+    // Local helper for formatting file sizes from Umbraco Media bytes
+    string FormatFileSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{Math.Round((double)bytes / 1024, 1)} KB";
+        return $"{Math.Round((double)bytes / (1024 * 1024), 2)} MB";
+    }
+
+    // Local helper for mapping file extensions to Bootstrap icons and colors
+    (string IconClass, string TextColor) GetFileIconSpecs(string extension)
+    {
+        var ext = extension?.ToLowerInvariant().TrimStart('.') ?? "";
+        return ext switch
+        {
+            "pdf" => ("bi-file-earmark-pdf", "text-danger"),
+            "xls" or "xlsx" => ("bi-file-earmark-excel", "text-success"),
+            "doc" or "docx" => ("bi-file-earmark-word", "text-primary"),
+            "csv" => ("bi-filetype-csv", "text-success"),
+            "ppt" or "pptx" => ("bi-file-earmark-ppt", "text-warning"),
+            "zip" or "7z" or "rar" => ("bi-file-earmark-zip", "text-secondary"),
+            "png" or "jpg" or "jpeg" => ("bi-file-earmark-image", "text-info"),
+            _ => ("bi-file-earmark", "text-secondary")
+        };
+    }
+}
+
+<div class="col-12 mb-4 ps-4 pe-4">
+    <div class="card table-card card-bulma-box">
+        @if (!string.IsNullOrWhiteSpace(tableTitle))
+        {
+            <div class="card-header doc-header h6 pt-2 pb-2 text-body-secondary fw-bold">@tableTitle</div>
+        }
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 60px"><i class="bi bi-file-earmark-fill text-secondary small"></i></th>
+                        <th class="small text-body-secondary">Name</th>
+                        <th style="width: 250px" class="small text-body-secondary">Last Modified</th>
+                        <th style="width: 180px" class="small text-body-secondary">Size</th>
+                        <th style="width: 120px" class="small text-body-secondary">Info</th>
+                        <th style="width: 120px" class="small text-body-secondary">Download</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (documentRows != null && documentRows.Any())
+                    {
+                        foreach (var rowBlock in documentRows)
+                        {
+                            rowIndex++;
+                            var row = rowBlock.Content;
+
+                            // Properties from "documentRow" element
+                            var fileName = row.Value<string>("fileName");
+                            var mediaItem = row.Value<IPublishedContent>("fileUrl");
+                            var fileDescription = row.Value("fileDescription");
+
+                            // Fallbacks and properties extracted directly from Umbraco Media cache
+                            var mediaUrl = mediaItem?.Url() ?? "#";
+                            var mediaName = !string.IsNullOrWhiteSpace(fileName) ? fileName : (mediaItem?.Name ?? "Unnamed Document");
+                            var updateDate = mediaItem != null ? mediaItem.UpdateDate.ToString("dd MMMM yyyy, HH:mm") : "N/A";
+                            
+                            var rawBytes = mediaItem?.Value<long>("umbracoBytes") ?? 0;
+                            var formattedSize = mediaItem != null ? FormatFileSize(rawBytes) : "N/A";
+                            
+                            var extension = mediaItem?.Value<string>("umbracoExtension") ?? string.Empty;
+                            var (iconClass, textColor) = GetFileIconSpecs(extension);
+
+                            var collapseRowId = $"{tableId}_row_{rowIndex}";
+
+                            <tr class="align-middle">
+                                <td>
+                                    <i class="bi @iconClass h2 @textColor"></i>
+                                </td>
+                                <td>
+                                    <a href="@mediaUrl" target="_blank" class="blue-link text-decoration-none small">@mediaName</a>
+                                </td>
+                                <td class="text-body-secondary small">@updateDate</td>
+                                <td class="text-body-secondary small">@formattedSize</td>
+                                <td>
+                                    @if (fileDescription != null && !string.IsNullOrWhiteSpace(fileDescription.ToString()))
+                                    {
+                                        <button class="btn btn-primary btn-sm"
+                                                onclick="document.getElementById('@collapseRowId').classList.toggle('show')"
+                                                style="cursor: pointer;"
+                                                type="button">
+                                            <i class="bi bi-chat-left-text ps-4 pe-4"></i>
+                                        </button>
+                                    }
+                                </td>
+                                <td>
+                                    <a href="@mediaUrl" download class="btn btn-success btn-sm">
+                                        <i class="bi bi-download ps-4 pe-4"></i>
+                                    </a>
+                                </td>
+                            </tr>
+
+                            if (fileDescription != null && !string.IsNullOrWhiteSpace(fileDescription.ToString()))
+                            {
+                                <tr id="@collapseRowId" class="collapsible-row">
+                                    <td colspan="6" class="p-0 border-0">
+                                        <div class="collapse-wrapper">
+                                            <div class="collapse-content p-3 card m-2 d-inline">
+                                                <i class="bi bi-chevron-up me-2"></i>
+                                                <span class="small">@fileDescription</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

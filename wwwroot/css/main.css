@@ -246,7 +246,7 @@ button {
 }
 
 /* Remove internal borders if using card-header or card-footer */
-.card-bulma-box .card-header,
+.card-bulma-box .card-header:not(.doc-header),
 .card-bulma-box .card-footer {
   background-color: transparent;
   border-bottom: none;
@@ -753,4 +753,44 @@ a:hover>.rounded-circle>img {
 
 .eye-toggle[aria-expanded="false"] .bi-eye-slash {
   display: none;
+}
+
+/* DOCUMENT LIBRARY STYLES */
+.table-card {
+  overflow: hidden;
+}
+
+/* CSS to natively handle table row collapsing */
+.collapsible-row {
+  display: none;
+}
+
+.collapsible-row.show {
+  display: table-row;
+}
+
+.collapsible-row .collapse-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s ease-out;
+}
+
+.collapsible-row.show .collapse-wrapper {
+  grid-template-rows: 1fr;
+}
+
+.collapse-wrapper {
+  background-color: rgba(33, 37, 41, 0.03);
+}
+
+.collapsible-row .collapse-content {
+  overflow: hidden;
+}
+
+.table>tbody>tr:nth-last-child(2) {
+  border: white solid 0px !important;
+}
+
+.collapse-content > span > p {
+  display: inline !important;
 }
