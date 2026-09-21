@@ -6,6 +6,7 @@
 
 @{
     var tableTitle = Model.Value<string>("tableTitle");
+    var tableAnchor = Model.Value<string>("tableAnchor");
     var documentRows = Model.Value<BlockListModel>("documentTable");
     
     // Create a unique prefix per table instance to prevent ID collisions on the same page
@@ -39,7 +40,9 @@
 }
 
 <div class="col-12 mb-4 ps-4 pe-4">
-    <div class="card table-card card-bulma-box">
+
+    <div class="card table-card card-bulma-box mb-5" @(string.IsNullOrWhiteSpace(tableAnchor) ? "" : $"id={tableAnchor}")>
+
         @if (!string.IsNullOrWhiteSpace(tableTitle))
         {
             <div class="card-header doc-header h6 pt-2 pb-2 text-body-secondary fw-bold">@tableTitle</div>
