@@ -1,4 +1,5 @@
 ﻿@using Umbraco.Cms.Core.Models
+@using Umbraco.Cms.Core.Models.PublishedContent
 @using Umbraco.Extensions
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
 
@@ -26,6 +27,25 @@
     var shouldExpand = isCurrentPage || isParentOfActive;
 
     var collapseId = $"menu-node-{item.Id}";
+
+    // --- URL & TARGET RESOLUTION LOGIC ---
+    string navUrl = item.Url();
+    string navTarget = "_self";
+
+    // Checks for Menu Link doc types or any page with a Multi URL Picker property named 'link'
+    if (item.ContentType.Alias.Equals("menuLinkPage", StringComparison.OrdinalIgnoreCase) 
+        || item.ContentType.Alias.Equals("menuLink", StringComparison.OrdinalIgnoreCase) 
+        || item.HasProperty("link"))
+    {
+        var pickedLink = item.Value<Link>("link");
+        var openInNewWindow = item.Value<bool>("openInNewWindow");
+
+        if (pickedLink != null)
+        {
+            navUrl = pickedLink.Url;
+            navTarget = openInNewWindow || pickedLink.Target == "_blank" ? "_blank" : "_self";
+        }
+    }
 
     // --- TITLE RESOLUTION LOGIC ---
     // Fetch value directly from the item (works natively across compositions)
@@ -56,11 +76,12 @@
             "documentLibraryPage" => "bi-archive",
             "staffPage" => "bi-person",
             "searchPage" => "bi-search",
+            "menuLink" => "bi-file-earmark",
             _ => hasChildren ? "bi-folder" : "bi-file-earmark"
         };
 
         // If the item has children and isn't an explicitly mapped page type, default to folder
-        if (hasChildren && item.ContentType.Alias != "DepartmentPage")
+        if (hasChildren && item.ContentType.Alias != "departmentPage")
         {
             iconClass = "bi-folder";
         }
@@ -72,7 +93,7 @@
     {
         <div class="nav-item-btn @(isCurrentPage ? "active" : "") p-0">
             @* Direct Link to the parent page *@
-            <a href="@item.Url()" class="flex-grow-1 text-decoration-none text-reset py-2 ps-2 pe-1 d-flex align-items-center">
+            <a href="@navUrl" target="@navTarget" class="flex-grow-1 text-decoration-none text-reset py-2 ps-2 pe-1 d-flex align-items-center">
                 <i class="bi @iconClass me-2"></i>
                 <span>@linkTitle</span>
             </a>
@@ -100,7 +121,7 @@
     }
     else
     {
-        <a href="@item.Url()" class="nav-item-btn @(isCurrentPage ? "active" : "") flex-grow-1 text-decoration-none text-reset py-2 ps-2 pe-1 d-flex align-items-center" style="justify-content: flex-start;">
+        <a href="@navUrl" target="@navTarget" class="nav-item-btn @(isCurrentPage ? "active" : "") flex-grow-1 text-decoration-none text-reset py-2 ps-2 pe-1 d-flex align-items-center" style="justify-content: flex-start;">
             <i class="bi @iconClass me-2"></i>
             <span>@linkTitle</span>
         </a>
