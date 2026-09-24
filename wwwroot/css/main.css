@@ -794,3 +794,22 @@ a:hover>.rounded-circle>img {
 .collapse-content > span > p {
   display: inline !important;
 }
+
+.powr-container {
+position: relative;
+width: 100%;
+height: 1025px; 
+overflow: hidden; 
+}
+
+.powr-container > div {
+position: absolute;
+top: -25px;
+left: 0;
+width: 100%;
+}
+
+/* .powr-container > iframe {
+  width: 100% !important;
+  min-height: 900px !important;
+} */

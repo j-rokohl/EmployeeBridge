@@ -172,3 +172,35 @@ var newsLink = Model.Value<IEnumerable<Link>>("linkToMoreNews")?.FirstOrDefault(
 </div>
 }
 <!-- Accordion End --------------------------------------------------------------------------------->
+<!-- Social Media Start ---------------------------------------------------------------------------->
+@if (Model.Value<string>("showOrHideSocialFeed") == "Show")
+{
+
+var socialLink = Model.Value<IEnumerable<Link>>("linkToMoreSocial")?.FirstOrDefault() 
+                   ?? Model.Value<Link>("linkToMoreSocial");
+
+<div class="container-flex bg-light">
+    <div class="container pt-5 pb-5">
+        <h2 class="gradient pb-2">@Model.Value("socialMediaTitle")</h2>
+
+            @if (socialLink != null && !string.IsNullOrWhiteSpace(socialLink.Url))
+            {
+                var linkText = !string.IsNullOrWhiteSpace(socialLink.Name) ? socialLink.Name : "View All News";
+                var target = string.IsNullOrWhiteSpace(socialLink.Target) ? "_self" : socialLink.Target;
+
+                <p>
+                    <a class="blue-link fw-bold text-decoration-none" href="@socialLink.Url" target="@target">
+                        @linkText <i class="bi bi-chevron-right" style="-webkit-text-stroke: 1px;"></i>
+                    </a>
+                </p>
+            }
+
+        <div class="row">
+            <div class="powr-container">
+                @Html.Raw(Model?.Value("embedCode"))
+            </div>
+        </div>
+    </div>
+</div>
+}
+<!-- Social Media End ------------------------------------------------------------------------------>
