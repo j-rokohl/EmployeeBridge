@@ -35,7 +35,7 @@
                 var link = content.Value<IEnumerable<Link>>("iconLink")?.FirstOrDefault() 
                            ?? content.Value<Link>("iconLink");
 
-                <div class="col d-flex flex-column align-items-center">
+                <div class="col d-flex flex-column align-items-center icon-fade" data-aos="fade-down">
                     
                     @* Wrapper link if editor supplied a URL *@
                     @if (link != null)

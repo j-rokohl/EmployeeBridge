@@ -48,7 +48,7 @@
                 
                 @if (!string.IsNullOrWhiteSpace(slideLabel) || (slideText != null && !string.IsNullOrWhiteSpace(slideText.ToHtmlString())))
                 {
-                    <div class="carousel-caption d-md-block" 
+                    <div class="carousel-caption d-md-block" data-aos="fade-right" data-aos-duration="900" 
                          style="background-color: rgba(255, 255, 255, 0.70); border-radius: 20px; padding: 15px;">
                          <div class="caption-indent">
                         @if (!string.IsNullOrWhiteSpace(slideLabel))

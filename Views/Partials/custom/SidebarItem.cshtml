@@ -6,14 +6,18 @@
 @{
     var item = Model;
     var isBlogList = item.ContentType.Alias == "blogListPage";
+    var isCalendarList = item.ContentType.Alias == "calendarListPage";
     
-    // 1. Do not fetch children if the current node is a BlogListPage
-    var visibleChildren = isBlogList 
+    // Combine both list containers so neither renders child items in the sidebar
+    var isFeedList = isBlogList || isCalendarList;
+    
+    // 1. Do not fetch children if the current node is a BlogListPage or CalendarListPage
+    var visibleChildren = isFeedList 
         ? Enumerable.Empty<IPublishedContent>()
         : item.Children().Where(x => x.IsVisible()).ToList();
 
-    // 2. BlogListPage should never act as a parent container in the sidebar UI
-    var hasChildren = !isBlogList && visibleChildren.Any();
+    // 2. Feed list pages should never act as parent containers in the sidebar UI
+    var hasChildren = !isFeedList && visibleChildren.Any();
 
     // Safely retrieve the actual active page from ViewData
     var currentContent = ViewData["CurrentPage"] as IPublishedContent;
@@ -77,6 +81,9 @@
             "staffPage" => "bi-person",
             "searchPage" => "bi-search",
             "menuLink" => "bi-file-earmark",
+            "faqPage" => "bi-question-circle",
+            "calendarItemPage" => "bi-calendar3",
+            "calendarListPage" => "bi-calendar3",
             _ => hasChildren ? "bi-folder" : "bi-file-earmark"
         };
 

@@ -1,0 +1,68 @@
+﻿@using Umbraco.Cms.Web.Common.PublishedModels;
+@using Umbraco.Cms.Core.Models;
+@using Umbraco.Extensions;
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+    Layout = "masterTemplate.cshtml";
+
+    var eventTitle = Model.Value<string>("eventTitle");
+    var eventDate = Model.Value<DateTime>("eventDate");
+    var location = Model.Value<string>("location");
+    var departments = Model.Value<IEnumerable<IPublishedContent>>("department") ?? Enumerable.Empty<IPublishedContent>();
+}
+
+<div class="d-flex flex-column flex-lg-row">
+    @await Html.PartialAsync("custom/Sidebar", Model)
+    <div class="flex-grow-1 p-4">
+        <!-- Breadcrumb -->
+        <div class="container-flex">
+            <div class="container">
+                <div class="p-4">
+                    @await Html.PartialAsync("custom/Breadcrumbs")
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="container-flex">
+            <div class="container pt-3 pb-3">
+                <h1 class="gradient ps-4 pe-4 pb-2">@eventTitle</h1>
+
+                <!-- Event Meta Block -->
+                <div class="ps-4 mb-4">
+                    <div style="border-left: 3px solid #1a8f39;" class="green-border ps-4 py-3">
+                        <p class="mb-2">
+                            <strong>Date & Time:</strong> @eventDate.ToString("MMMM dd, yyyy") at @eventDate.ToString("h:mm tt")
+                        </p>
+
+                        @if (!string.IsNullOrWhiteSpace(location))
+                        {
+                            <p class="mb-2">
+                                <strong>Location:</strong> @location
+                            </p>
+                        }
+
+                        @if (departments.Any())
+                        {
+                            <div class="d-flex flex-wrap gap-1 mt-2">
+                                @foreach (var dept in departments)
+                                {
+                                    <span class="badge bg-success">@dept.Name</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                @if (Model.HasValue("shortDescription"))
+                {
+                    <h2 class="h5 p-4 blue-link">@Model.Value("shortDescription")</h2>
+                }
+
+                <div class="ps-4 pe-4">
+                    @Model.Value("moreInformation")
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -23,7 +23,7 @@
                                         ?? card.Value<Link>("cardButton");
 
         <div class="col">
-            <div class="card card-bulma-box h-100">
+            <div class="card card-bulma-box h-100" data-aos="zoom-in">
                 @if (image != null)
                 {
                     <img src="@image.Url()" class="card-img-top" alt="@(image.Value<string>("altText") ?? title)">

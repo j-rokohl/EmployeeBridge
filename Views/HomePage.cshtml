@@ -35,7 +35,7 @@
 @if (Model.Value<string>("showOrHideContent") == "Show")
 {
   <div class="container-flex">
-    <div class="container pt-5 pb-5">
+    <div class="container pt-5 pb-5" data-aos="fade-right" data-aos-duration="700">
       <h1 class="gradient mb-4">@Model.Value("pageTitle")</h1>
       <div>@Model.Value("bodyText")</div>
     </div>
@@ -50,7 +50,7 @@
                         ?? Model.Value<Link>("featureButton");
 
     <div class="container-flex bg-light">
-        <div class="container pt-5 pb-5">
+        <div class="container pt-5 pb-5" data-aos="fade-right" data-aos-duration="700">
             <div class="row section align-items-center">
                 <div class="col-md-8">
                     @if (Model.HasValue("featureTitle"))
@@ -95,7 +95,7 @@
 
 <div class="container-flex">
     <div class="container pt-5 pb-5">
-        <h2 class="gradient mb-4">@Model.Value("cardGroupTitle")</h2>
+        <h2 class="gradient mb-4" data-aos="fade-right" data-aos-duration="700">@Model.Value("cardGroupTitle")</h2>
 
             @{
             var cardGroupBlocks = Model.Value<BlockListModel>("cardGroup");
@@ -133,20 +133,21 @@ var newsLink = Model.Value<IEnumerable<Link>>("linkToMoreNews")?.FirstOrDefault(
 
 <div class="container-flex">
     <div class="container pt-5 pb-5">
-        <h2 class="gradient pb-2">@Model.Value("newsFeedTitle")</h2>
+        <div data-aos="fade-right" data-aos-duration="700"> 
+            <h2 class="gradient pb-2">@Model.Value("newsFeedTitle")</h2>
 
-            @if (newsLink != null && !string.IsNullOrWhiteSpace(newsLink.Url))
-            {
-                var linkText = !string.IsNullOrWhiteSpace(newsLink.Name) ? newsLink.Name : "View All News";
-                var target = string.IsNullOrWhiteSpace(newsLink.Target) ? "_self" : newsLink.Target;
+                @if (newsLink != null && !string.IsNullOrWhiteSpace(newsLink.Url))
+                {
+                    var linkText = !string.IsNullOrWhiteSpace(newsLink.Name) ? newsLink.Name : "View All News";
+                    var target = string.IsNullOrWhiteSpace(newsLink.Target) ? "_self" : newsLink.Target;
 
-                <p class="pb-4">
-                    <a class="blue-link fw-bold text-decoration-none" href="@newsLink.Url" target="@target">
-                        @linkText <i class="bi bi-chevron-right" style="-webkit-text-stroke: 1px;"></i>
-                    </a>
-                </p>
-            }
-
+                    <p class="pb-4">
+                        <a class="blue-link fw-bold text-decoration-none" href="@newsLink.Url" target="@target">
+                            @linkText <i class="bi bi-chevron-right" style="-webkit-text-stroke: 1px;"></i>
+                        </a>
+                    </p>
+                }
+        </div>
         @await Html.PartialAsync("custom/NewsFeedHomePage", Model)
     </div>
 </div>
@@ -157,7 +158,7 @@ var newsLink = Model.Value<IEnumerable<Link>>("linkToMoreNews")?.FirstOrDefault(
 {
 <div class="container-flex bg-light">
     <div class="container pt-5 pb-5">
-        <h2 class="gradient mb-4">@Model.Value("accordionGroupTitle")</h2>
+        <h2 class="gradient mb-4" data-aos="fade-right" data-aos-duration="700">@Model.Value("accordionGroupTitle")</h2>
 
         @{
             // Replace "faqAccordion" with your actual Block List property alias on HomePage
@@ -181,7 +182,8 @@ var socialLink = Model.Value<IEnumerable<Link>>("linkToMoreSocial")?.FirstOrDefa
 
 <div class="container-flex bg-light">
     <div class="container pt-5 pb-5">
-        <h2 class="gradient pb-2">@Model.Value("socialMediaTitle")</h2>
+        <div data-aos="fade-right" data-aos-duration="700">
+            <h2 class="gradient pb-2">@Model.Value("socialMediaTitle")</h2>
 
             @if (socialLink != null && !string.IsNullOrWhiteSpace(socialLink.Url))
             {
@@ -194,7 +196,7 @@ var socialLink = Model.Value<IEnumerable<Link>>("linkToMoreSocial")?.FirstOrDefa
                     </a>
                 </p>
             }
-
+        </div>
         <div class="row">
             <div class="powr-container">
                 @Html.Raw(Model?.Value("embedCode"))
