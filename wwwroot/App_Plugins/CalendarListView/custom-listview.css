@@ -1,0 +1,23 @@
+/* Styling for Backoffice List View Rows */
+
+/* Target rows with sort order or past indicator */
+uui-table-row[data-is-past="true"],
+tr.is-past-event {
+    background-color: #f3f4f6 !important; /* Light Grey */
+    color: #6b7280 !important;
+    opacity: 0.75;
+}
+
+uui-table-row[data-is-past="false"],
+tr.is-upcoming-event {
+    background-color: #eff6ff !important; /* Light Blue */
+}
+
+/* Hover effects for improved UI visibility */
+uui-table-row[data-is-past="true"]:hover {
+    background-color: #e5e7eb !important;
+}
+
+uui-table-row[data-is-past="false"]:hover {
+    background-color: #dbeafe !important;
+}

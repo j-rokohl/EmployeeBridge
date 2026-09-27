@@ -1,0 +1,13 @@
+{
+  "$schema": "../../umbraco-package.schema.json",
+  "name": "Calendar ListView Customization",
+  "version": "1.0.0",
+  "extensions": [
+    {
+      "type": "backofficeEntryPoint",
+      "alias": "Calendar.ListView.EntryPoint",
+      "name": "Calendar ListView Entry Point",
+      "js": "/App_Plugins/CalendarListView/listview-highlighter.js"
+    }
+  ]
+}
