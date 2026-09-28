@@ -4,16 +4,36 @@
 
 @{
     // Read query string parameters
+    var activeView = Context.Request.Query["view"].ToString()?.ToLowerInvariant();
+    if (string.IsNullOrWhiteSpace(activeView) || (activeView != "list" && activeView != "month"))
+    {
+        activeView = "list";
+    }
+
     var deptFilter = Context.Request.Query["deptId"].ToString();
     var searchQuery = Context.Request.Query["q"].ToString()?.Trim() ?? string.Empty;
     var pageQuery = Context.Request.Query["page"].ToString();
     
     int.TryParse(deptFilter, out int selectedDeptId);
     
-    // Pagination setup
+    // Restore Pagination Setup (2 events per page)
     int pageSize = 2;
     int.TryParse(pageQuery, out int pageNumber);
     pageNumber = pageNumber > 0 ? pageNumber : 1;
+
+    // Month view date navigation setup
+    var yearQuery = Context.Request.Query["year"].ToString();
+    var monthQuery = Context.Request.Query["month"].ToString();
+
+    var today = DateTime.Today;
+    int currentYear = int.TryParse(yearQuery, out var y) ? y : today.Year;
+    int currentMonth = int.TryParse(monthQuery, out var m) ? m : today.Month;
+
+    var selectedMonthStart = new DateTime(currentYear, currentMonth, 1);
+    var selectedMonthEnd = selectedMonthStart.AddMonths(1).AddDays(-1);
+
+    var prevMonthDate = selectedMonthStart.AddMonths(-1);
+    var nextMonthDate = selectedMonthStart.AddMonths(1);
 
     // Get the dedicated Calendar listing page node
     var calendarListingPage = Umbraco.ContentAtRoot()
@@ -22,9 +42,8 @@
         ?? Model;
 
     var targetUrl = calendarListingPage.Url();
-    var now = DateTime.Now;
 
-    // Helper to extract departments regardless of single/multi picker configuration
+    // Helper to extract departments
     IEnumerable<IPublishedContent> GetEventDepartments(IPublishedContent item)
     {
         if (item == null || !item.HasValue("department"))
@@ -39,29 +58,27 @@
         return Enumerable.Empty<IPublishedContent>();
     }
 
-    // 1. Query all visible 'calendarItemPage' nodes (upcoming/today)
-    var query = Umbraco.ContentAtRoot()
+    // Base query for calendarItemPage nodes
+    var baseQuery = Umbraco.ContentAtRoot()
         .SelectMany(x => x.DescendantsOrSelf())
         .Where(x => x != null 
                  && string.Equals(x.ContentType.Alias, "calendarItemPage", StringComparison.OrdinalIgnoreCase) 
-                 && x.IsVisible()
-                 && x.Value<DateTime>("eventDate") >= now.Date);
+                 && x.IsVisible());
 
-    // 2. Apply Department Filter if query parameter exists
+    // Apply Department Filter
     if (selectedDeptId > 0)
     {
-        query = query.Where(evt => {
+        baseQuery = baseQuery.Where(evt => {
             var depts = GetEventDepartments(evt);
             return depts.Any(d => d.Id == selectedDeptId);
         });
     }
 
-    // 3. Apply Search Query Filter if 'q' parameter exists
+    // Apply Search Query Filter
     if (!string.IsNullOrWhiteSpace(searchQuery))
     {
         var searchTerm = searchQuery.ToLowerInvariant();
-
-        query = query.Where(evt => {
+        baseQuery = baseQuery.Where(evt => {
             var title = (evt.Value<string>("eventTitle") ?? evt.Name ?? string.Empty).ToLowerInvariant();
             var location = (evt.Value<string>("location") ?? string.Empty).ToLowerInvariant();
             var shortDesc = (evt.Value<string>("shortDescription") ?? string.Empty).ToLowerInvariant();
@@ -70,31 +87,44 @@
         });
     }
 
-    // Calculate total items and pages BEFORE calling Skip/Take
-    var totalItems = query.Count();
+    // --- LIST VIEW DATA ---
+    var listQuery = baseQuery.Where(x => x.Value<DateTime>("eventDate") >= today);
+    var totalItems = listQuery.Count();
     var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
 
-    // Order chronologically (soonest first) and slice page
-    var pagedEvents = query
+    var pagedEvents = listQuery
         .OrderBy(x => x.Value<DateTime>("eventDate"))
         .Skip((pageNumber - 1) * pageSize)
         .Take(pageSize)
         .ToList();
 
-    // Helper function to maintain filter parameters in pagination links
+    // --- MONTH VIEW DATA ---
+    var allMonthEvents = baseQuery
+        .Where(x => x.Value<DateTime>("eventDate").Date >= selectedMonthStart.AddDays(-7) && x.Value<DateTime>("eventDate").Date <= selectedMonthEnd.AddDays(7))
+        .ToList();
+
+    // Helper functions for pagination and month navigation links
     string GetPageUrl(int page)
     {
-        var queryParams = new List<string>();
-        if (selectedDeptId > 0) queryParams.Add($"deptId={selectedDeptId}");
-        if (!string.IsNullOrWhiteSpace(searchQuery)) queryParams.Add($"q={System.Net.WebUtility.UrlEncode(searchQuery)}");
-        queryParams.Add($"page={page}");
+        var qParams = new List<string> { "view=list", $"page={page}" };
+        if (selectedDeptId > 0) qParams.Add($"deptId={selectedDeptId}");
+        if (!string.IsNullOrWhiteSpace(searchQuery)) qParams.Add($"q={System.Net.WebUtility.UrlEncode(searchQuery)}");
 
-        return $"{targetUrl}?{string.Join("&", queryParams)}";
+        return $"{targetUrl}?{string.Join("&", qParams)}";
+    }
+
+    string GetMonthNavUrl(int year, int month)
+    {
+        var qParams = new List<string> { "view=month", $"year={year}", $"month={month}" };
+        if (selectedDeptId > 0) qParams.Add($"deptId={selectedDeptId}");
+        if (!string.IsNullOrWhiteSpace(searchQuery)) qParams.Add($"q={System.Net.WebUtility.UrlEncode(searchQuery)}");
+
+        return $"{targetUrl}?{string.Join("&", qParams)}";
     }
 }
 
 <div class="row g-4">
-    @* Left Column (9 cols wide) - Events List *@
+    @* Left Column (9 cols wide) - View Content *@
     <div class="col-lg-9">
         @if (selectedDeptId > 0 || !string.IsNullOrWhiteSpace(searchQuery))
         {
@@ -111,100 +141,190 @@
                         <span class="badge bg-primary">Department: @(activeDept?.Name ?? "Selected")</span>
                     }
                 </div>
-                <a href="@targetUrl" class="btn btn-sm btn-outline-secondary">Clear Filters</a>
+                <a href="@targetUrl?view=@activeView" class="btn btn-sm btn-outline-secondary">Clear Filters</a>
             </div>
         }
 
-        @if (pagedEvents.Any())
+        @if (activeView == "list")
         {
-            foreach (var item in pagedEvents)
-            { 
-                var eventTitle = !string.IsNullOrWhiteSpace(item.Value<string>("eventTitle")) 
-                                    ? item.Value<string>("eventTitle") 
-                                    : item.Name;
-                var eventDate = item.Value<DateTime>("eventDate");
-                var location = item.Value<string>("location");
-                var shortDesc = item.Value<string>("shortDescription");
-                var eventDepts = GetEventDepartments(item);
-
-                <div class="row mb-4 me-1">
-                    <!-- Blue Date Badge Block -->
-                    <div class="col-2 ps-4 mt-0">
-                        <div style="width: 80px; height: 80px; background-color: #273370;" class="me-3 text-center rounded">
-                            <div class="pt-2 fw-bold h3 mb-0 text-white">@eventDate.ToString("dd")</div>
-                            <div class="fw-bold text-white text-uppercase">@eventDate.ToString("MMM")</div>
-                        </div>
-                    </div>
-
-                    <!-- Event Details -->
-                    <div class="col-10">
-                        <a href="@item.Url()" class="text-decoration-none">
-                            <h5 class="card-title text-dark headline mb-1">@eventTitle</h5>
-                        </a>
-                        
-                        <p class="card-text text-muted small mb-2">
-                            <i class="bi bi-clock me-1"></i>@eventDate.ToString("h:mm tt")
-                            @if (!string.IsNullOrWhiteSpace(location))
-                            {
-                                <span class="ms-2 me-2">|</span><i class="bi bi-geo-alt me-1"></i>@location
-                            }
-                        </p>
-
-                        @if (eventDepts.Any())
-                        {
-                            <div class="mb-2 d-flex flex-wrap gap-1">
-                                @foreach (var dept in eventDepts)
-                                {
-                                    var deptUrl = $"{targetUrl}?deptId={dept.Id}" + (!string.IsNullOrWhiteSpace(searchQuery) ? $"&q={System.Net.WebUtility.UrlEncode(searchQuery)}" : "");
-                                    <a href="@deptUrl" class="text-decoration-none">
-                                        <span class="badge bg-success">@dept.Name</span>
-                                    </a>
-                                }
-                            </div>
-                        }
-
-                        @if (!string.IsNullOrWhiteSpace(shortDesc))
-                        {
-                            <p class="mb-0 text-secondary">@shortDesc</p>
-                        }
-                    </div>
-                    <div class="border-bottom mt-3"></div>
-                </div>
-            }
-
-            @* Pagination Navigation *@
-            @if (totalPages > 1)
+            @* ================= LIST VIEW ================= *@
+            if (pagedEvents.Any())
             {
-                <nav aria-label="Calendar page navigation" class="mt-4">
-                    <ul class="pagination justify-content-center">
-                        @* Previous Button *@
-                        <li class="page-item @(pageNumber <= 1 ? "disabled" : "")">
-                            <a class="ps-4 page-link" href="@(pageNumber > 1 ? GetPageUrl(pageNumber - 1) : "#")">Previous</a>
-                        </li>
+                foreach (var item in pagedEvents)
+                { 
+                    var eventTitle = !string.IsNullOrWhiteSpace(item.Value<string>("eventTitle")) 
+                                        ? item.Value<string>("eventTitle") 
+                                        : item.Name;
+                    var eventDate = item.Value<DateTime>("eventDate");
+                    var location = item.Value<string>("location");
+                    var shortDesc = item.Value<string>("shortDescription");
+                    var eventDepts = GetEventDepartments(item);
 
-                        @* Page Number Links *@
-                        @for (int i = 1; i <= totalPages; i++)
-                        {
-                            <li class="page-item @(i == pageNumber ? "active" : "")">
-                                <a class="page-link" href="@GetPageUrl(i)">@i</a>
+                    <div class="row mb-4 me-1">
+                        <!-- Blue Date Badge Block -->
+                        <div class="col-2 ps-4 mt-0">
+                            <div style="width: 80px; height: 80px; background-color: #273370;" class="me-3 text-center rounded">
+                                <div class="pt-2 fw-bold h3 mb-0 text-white">@eventDate.ToString("dd")</div>
+                                <div class="fw-bold text-white text-uppercase">@eventDate.ToString("MMM")</div>
+                            </div>
+                        </div>
+
+                        <!-- Event Details -->
+                        <div class="col-10">
+                            <a href="@item.Url()" class="text-decoration-none">
+                                <h5 class="card-title text-dark headline mb-1">@eventTitle</h5>
+                            </a>
+                            
+                            <p class="card-text text-muted small mb-2">
+                                <i class="bi bi-clock me-1"></i>@eventDate.ToString("h:mm tt")
+                                @if (!string.IsNullOrWhiteSpace(location))
+                                {
+                                    <span class="ms-2 me-2">|</span><i class="bi bi-geo-alt me-1"></i>@location
+                                }
+                            </p>
+
+                            @if (eventDepts.Any())
+                            {
+                                <div class="mb-2 d-flex flex-wrap gap-1">
+                                    @foreach (var dept in eventDepts)
+                                    {
+                                        var deptUrl = $"{targetUrl}?view=list&deptId={dept.Id}" + (!string.IsNullOrWhiteSpace(searchQuery) ? $"&q={System.Net.WebUtility.UrlEncode(searchQuery)}" : "");
+                                        <a href="@deptUrl" class="text-decoration-none">
+                                            <span class="badge bg-success">@dept.Name</span>
+                                        </a>
+                                    }
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(shortDesc))
+                            {
+                                <p class="mb-0 text-secondary">@shortDesc</p>
+                            }
+                        </div>
+                        <div class="border-bottom mt-3"></div>
+                    </div>
+                }
+
+                @* Restored Pagination Navigation *@
+                if (totalPages > 1)
+                {
+                    <nav aria-label="Calendar page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            @* Previous Button *@
+                            <li class="page-item @(pageNumber <= 1 ? "disabled" : "")">
+                                <a class="ps-4 page-link" href="@(pageNumber > 1 ? GetPageUrl(pageNumber - 1) : "#")">Previous</a>
                             </li>
-                        }
 
-                        @* Next Button *@
-                        <li class="page-item @(pageNumber >= totalPages ? "disabled" : "")">
-                            <a class="pe-4 page-link" href="@(pageNumber < totalPages ? GetPageUrl(pageNumber + 1) : "#")">Next</a>
-                        </li>
-                    </ul>
-                </nav>
+                            @* Page Number Links *@
+                            @for (int i = 1; i <= totalPages; i++)
+                            {
+                                <li class="page-item @(i == pageNumber ? "active" : "")">
+                                    <a class="page-link" href="@GetPageUrl(i)">@i</a>
+                                </li>
+                            }
+
+                            @* Next Button *@
+                            <li class="page-item @(pageNumber >= totalPages ? "disabled" : "")">
+                                <a class="pe-4 page-link" href="@(pageNumber < totalPages ? GetPageUrl(pageNumber + 1) : "#")">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+            }
+            else
+            {
+                <p class="text-muted">No upcoming events found matching your criteria.</p>
             }
         }
         else
         {
-            <p class="text-muted">No upcoming events found matching your criteria.</p>
+            @* ================= MONTHLY GRID VIEW ================= *@
+            <div class="d-flex align-items-center justify-content-between mb-4 bg-light p-3 rounded">
+                <a href="@GetMonthNavUrl(prevMonthDate.Year, prevMonthDate.Month)" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-chevron-left me-1"></i> @prevMonthDate.ToString("MMM yyyy")
+                </a>
+                <h4 class="fw-bold mb-0 text-dark">@selectedMonthStart.ToString("MMMM yyyy")</h4>
+                <a href="@GetMonthNavUrl(nextMonthDate.Year, nextMonthDate.Month)" class="btn btn-outline-primary btn-sm">
+                    @nextMonthDate.ToString("MMM yyyy") <i class="bi bi-chevron-right ms-1"></i>
+                </a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered border border-secondary-subtle align-top mb-0" style="table-layout: fixed; border-collapse: collapse;">
+                    <thead>
+                        <tr class="text-center bg-light">
+                            <th style="width: 14.28%" class="border-start border-end">Sunday</th>
+                            <th style="width: 14.28%" class="border-end">Monday</th>
+                            <th style="width: 14.28%" class="border-end">Tuesday</th>
+                            <th style="width: 14.28%" class="border-end">Wednesday</th>
+                            <th style="width: 14.28%" class="border-end">Thursday</th>
+                            <th style="width: 14.28%" class="border-end">Friday</th>
+                            <th style="width: 14.28%">Saturday</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            // Calculate grid starting Sunday
+                            var firstDayOfWeek = (int)selectedMonthStart.DayOfWeek;
+                            var gridStartDate = selectedMonthStart.AddDays(-firstDayOfWeek);
+                            var runningDate = gridStartDate;
+
+                            // Render 5 or 6 calendar row weeks as necessary
+                            int weeksToRender = (int)Math.Ceiling((firstDayOfWeek + DateTime.DaysInMonth(currentYear, currentMonth)) / 7.0);
+                        }
+
+                        @for (int w = 0; w < weeksToRender; w++)
+                        {
+                            <tr class="calendar-row" style="height: 110px;">
+                                @for (int d = 0; d < 7; d++)
+                                {
+                                    var cellDate = runningDate;
+                                    var isCurrentMonth = cellDate.Month == currentMonth;
+                                    var isTodayCell = cellDate.Date == today.Date;
+
+                                    var dayEvents = allMonthEvents
+                                        .Where(x => x.Value<DateTime>("eventDate").Date == cellDate.Date)
+                                        .OrderBy(x => x.Value<DateTime>("eventDate"))
+                                        .ToList();
+
+                                    <td class="@(isCurrentMonth ? (isTodayCell ? "bg-warning-subtle" : "bg-white") : "bg-light text-muted") p-1 @(d == 0 ? "border-start" : "") border-end border-bottom">
+                                        <div class="d-flex justify-content-between align-items-center mb-1 pe-1">
+                                            <span class="small fw-bold px-1 rounded @(isTodayCell ? "bg-warning text-dark" : "")">
+                                                @cellDate.Day
+                                            </span>
+                                        </div>
+
+                                        @if (dayEvents.Any())
+                                        {
+                                            <div class="d-flex flex-column gap-1 overflow-auto" style="max-height: 75px;">
+                                                @foreach (var evt in dayEvents)
+                                                {
+                                                    var title = !string.IsNullOrWhiteSpace(evt.Value<string>("eventTitle")) 
+                                                        ? evt.Value<string>("eventTitle") 
+                                                        : evt.Name;
+                                                    var evtTime = evt.Value<DateTime>("eventDate").ToString("h:mm tt");
+
+                                                    <a href="@evt.Url()" 
+                                                       class="text-decoration-none badge bg-primary text-wrap text-start fw-normal p-1" 
+                                                       title="@title (@evtTime)">
+                                                        <div class="fw-bold" style="font-size: 0.70rem;">@evtTime</div>
+                                                        <div class="text-truncate" style="font-size: 0.72rem;">@title</div>
+                                                    </a>
+                                                }
+                                            </div>
+                                        }
+                                    </td>
+                                    runningDate = runningDate.AddDays(1);
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         }
     </div>
 
-    @* Right Column (3 cols wide) - Calendar Search & Filter Sidebar *@
+    @* Right Column (3 cols wide) - Sidebar *@
     <div class="col-lg-3">
         @await Html.PartialAsync("custom/CalendarSearchSidebar", calendarListingPage)
     </div>

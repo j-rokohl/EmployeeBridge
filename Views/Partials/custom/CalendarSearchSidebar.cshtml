@@ -6,6 +6,13 @@
     // Get active query parameters from current URL
     var currentDeptFilter = Context.Request.Query["deptId"].ToString();
     var currentSearchQuery = Context.Request.Query["q"].ToString();
+    var currentView = Context.Request.Query["view"].ToString()?.ToLowerInvariant();
+
+    // Default view to "list" if not specified
+    if (string.IsNullOrWhiteSpace(currentView) || (currentView != "list" && currentView != "month"))
+    {
+        currentView = "list";
+    }
 
     // Query all department nodes across the site
     var departments = Umbraco.ContentAtRoot()
@@ -13,72 +20,100 @@
         .Where(x => string.Equals(x.ContentType.Alias, "Department", StringComparison.OrdinalIgnoreCase) && x.IsVisible())
         .OrderBy(x => x.Name)
         .ToList();
+
+    // Helper to generate URLs for view toggle buttons while preserving active filters
+    string GetViewToggleUrl(string targetView)
+    {
+        var queryParams = new List<string> { $"view={targetView}" };
+        if (!string.IsNullOrWhiteSpace(currentDeptFilter)) queryParams.Add($"deptId={currentDeptFilter}");
+        if (!string.IsNullOrWhiteSpace(currentSearchQuery)) queryParams.Add($"q={System.Net.WebUtility.UrlEncode(currentSearchQuery)}");
+        
+        return $"{Model.Url()}?{string.Join("&", queryParams)}";
+    }
 }
 
-<div class="card border-0 bg-light p-3">
-    @* --- SEARCH FORM --- *@
-    <h6 class="fw-bold mb-2 text-uppercase text-muted small mb-3">Search Events</h6>
-    <form method="get" action="@Model.Url()" class="mb-4 border-bottom">
-        @* Preserve current department filter if set *@
-        @if (!string.IsNullOrEmpty(currentDeptFilter))
-        {
-            <input type="hidden" name="deptId" value="@currentDeptFilter" />
-        }
-        
-        <div class="input-group mb-4">
-            <input type="text" 
-                   name="q" 
-                   class="form-control form-control-sm round-input me-2" 
-                   placeholder="Search keywords..." 
-                   value="@currentSearchQuery" 
-                   aria-label="Search events keywords">
-            <button class="btn btn-sm btn-primary" type="submit">
-                <i class="bi bi-search"></i>
-            </button>
-            @if (!string.IsNullOrWhiteSpace(currentSearchQuery))
+<div>
+    @* --- LIST / MONTH TOGGLE BUTTONS --- *@
+    <div class="row g-2 mb-4">
+        <div class="col-6">
+            <a href="@GetViewToggleUrl("list")" 
+               class="text-decoration-none d-block text-center rounded p-2 transition-all @(currentView == "list" ? "bg-white border border-success border-2 shadow-sm text-success" : "bg-light text-secondary border border-transparent")">
+                <i class="h2 bi bi-list-ul d-block mb-1"></i>
+                <div class="fw-bold small text-uppercase">List</div>
+            </a>
+        </div>
+        <div class="col-6">
+            <a href="@GetViewToggleUrl("month")" 
+               class="text-decoration-none d-block text-center rounded p-2 transition-all @(currentView == "month" ? "bg-white border border-success border-2 shadow-sm text-success" : "bg-light text-secondary border border-transparent")">
+                <i class="h2 bi bi-calendar3 d-block mb-1"></i>
+                <div class="fw-bold small text-uppercase">Month</div>
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 p-3 bg-light">
+        @* --- SEARCH FORM --- *@
+        <h6 class="fw-bold mb-2 text-uppercase text-muted small">Search Events</h6>
+        <form method="get" action="@Model.Url()" class="mb-4 border-bottom pb-3">
+            @* Preserve view and department filters when submitting search *@
+            <input type="hidden" name="view" value="@currentView" />
+            @if (!string.IsNullOrEmpty(currentDeptFilter))
             {
-                <a href="@Model.Url()@(string.IsNullOrEmpty(currentDeptFilter) ? "" : $"?deptId={currentDeptFilter}")" 
-                   class="btn btn-sm btn-outline-secondary ms-2" 
-                   title="Clear search text">
-                    <i class="bi bi-x-lg"></i>
+                <input type="hidden" name="deptId" value="@currentDeptFilter" />
+            }
+            
+            <div class="input-group">
+                <input type="text" 
+                       name="q" 
+                       class="form-control form-control-sm me-1" 
+                       placeholder="Search keywords..." 
+                       value="@currentSearchQuery" 
+                       aria-label="Search events keywords">
+                <button class="btn btn-sm btn-primary" type="submit">
+                    <i class="bi bi-search"></i>
+                </button>
+                @if (!string.IsNullOrWhiteSpace(currentSearchQuery))
+                {
+                    var clearSearchUrl = $"{Model.Url()}?view={currentView}" + (!string.IsNullOrEmpty(currentDeptFilter) ? $"&deptId={currentDeptFilter}" : "");
+                    <a href="@clearSearchUrl" 
+                       class="btn btn-sm btn-outline-secondary ms-1" 
+                       title="Clear search text">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                }
+            </div>
+        </form>
+
+        @* --- DEPARTMENT FILTER LIST --- *@
+        <h6 class="fw-bold mb-3 text-uppercase text-muted small">Filter by Department</h6>
+        <div class="list-group list-group-flush">
+            @{
+                var allDeptsParams = new List<string> { $"view={currentView}" };
+                if (!string.IsNullOrWhiteSpace(currentSearchQuery)) allDeptsParams.Add($"q={System.Net.WebUtility.UrlEncode(currentSearchQuery)}");
+                var allDeptsUrl = $"{Model.Url()}?{string.Join("&", allDeptsParams)}";
+            }
+            <a href="@allDeptsUrl" 
+               class="list-group-item list-group-item-action bg-transparent px-0 @(string.IsNullOrEmpty(currentDeptFilter) ? "fw-bold blue-link" : "text-secondary")">
+                All Departments
+            </a>
+
+            @foreach (var dept in departments)
+            {
+                var isSelected = currentDeptFilter == dept.Id.ToString();
+                
+                var deptParams = new List<string> { $"view={currentView}", $"deptId={dept.Id}" };
+                if (!string.IsNullOrWhiteSpace(currentSearchQuery)) deptParams.Add($"q={System.Net.WebUtility.UrlEncode(currentSearchQuery)}");
+                var deptUrl = $"{Model.Url()}?{string.Join("&", deptParams)}";
+                
+                <a href="@deptUrl" 
+                   class="list-group-item list-group-item-action bg-transparent px-0 d-flex justify-content-between align-items-center @(isSelected ? "fw-bold blue-link" : "text-secondary")">
+                    <span>@dept.Name</span>
+                    @if (isSelected)
+                    {
+                        <i class="bi bi-check-lg blue-link"></i>
+                    }
                 </a>
             }
         </div>
-    </form>
-
-    @* --- DEPARTMENT FILTER LIST --- *@
-    <h6 class="fw-bold mb-3 text-uppercase text-muted small">Filter by Department</h6>
-    <div class="list-group list-group-flush">
-        @* "All Departments" option *@
-        @{
-            var allDeptsUrl = string.IsNullOrWhiteSpace(currentSearchQuery) 
-                ? Model.Url() 
-                : $"{Model.Url()}?q={Uri.EscapeDataString(currentSearchQuery)}";
-        }
-        <a href="@allDeptsUrl" 
-           class="list-group-item list-group-item-action bg-transparent px-0 @(string.IsNullOrEmpty(currentDeptFilter) ? "fw-bold blue-link" : "text-secondary")">
-            All Departments
-        </a>
-
-        @foreach (var dept in departments)
-        {
-            var isSelected = currentDeptFilter == dept.Id.ToString();
-            
-            // Preserve search query parameter when toggling departments
-            var deptUrl = $"{Model.Url()}?deptId={dept.Id}";
-            if (!string.IsNullOrWhiteSpace(currentSearchQuery))
-            {
-                deptUrl += $"&q={Uri.EscapeDataString(currentSearchQuery)}";
-            }
-            
-            <a href="@deptUrl" 
-               class="list-group-item list-group-item-action bg-transparent px-0 d-flex justify-content-between align-items-center @(isSelected ? "fw-bold blue-link" : "text-secondary")">
-                <span>@dept.Name</span>
-                @if (isSelected)
-                {
-                    <i class="bi bi-check-lg blue-link"></i>
-                }
-            </a>
-        }
     </div>
 </div>
