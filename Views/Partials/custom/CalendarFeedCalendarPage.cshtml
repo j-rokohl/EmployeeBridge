@@ -243,7 +243,7 @@
                 <a href="@GetMonthNavUrl(prevMonthDate.Year, prevMonthDate.Month)" class="btn btn-outline-primary btn-sm">
                     <i class="bi bi-chevron-left me-1"></i> @prevMonthDate.ToString("MMM yyyy")
                 </a>
-                <h4 class="fw-bold mb-0 text-dark">@selectedMonthStart.ToString("MMMM yyyy")</h4>
+                <h4 class="mb-0 gradient">@selectedMonthStart.ToString("MMMM yyyy")</h4>
                 <a href="@GetMonthNavUrl(nextMonthDate.Year, nextMonthDate.Month)" class="btn btn-outline-primary btn-sm">
                     @nextMonthDate.ToString("MMM yyyy") <i class="bi bi-chevron-right ms-1"></i>
                 </a>
@@ -305,7 +305,7 @@
                                                     var evtTime = evt.Value<DateTime>("eventDate").ToString("h:mm tt");
 
                                                     <a href="@evt.Url()" 
-                                                       class="text-decoration-none badge bg-primary text-wrap text-start fw-normal p-1" 
+                                                       class="cal-hover text-decoration-none badge bg-primary text-wrap text-start fw-normal p-1" 
                                                        title="@title (@evtTime)">
                                                         <div class="fw-bold" style="font-size: 0.70rem;">@evtTime</div>
                                                         <div class="text-truncate" style="font-size: 0.72rem;">@title</div>
