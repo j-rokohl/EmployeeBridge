@@ -2,6 +2,7 @@
 @using Umbraco.Cms.Core.Models.Blocks
 @using Microsoft.AspNetCore.Html
 @using Umbraco.Cms.Core.PropertyEditors.ValueConverters
+@using System.Text.RegularExpressions
 @inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<IPublishedElement>
 
 @{
@@ -12,6 +13,35 @@
     // Create a unique prefix per table instance to prevent ID collisions on the same page
     var tableId = "table_" + Guid.NewGuid().ToString("N").Substring(0, 8);
     int rowIndex = 0;
+
+    // Helper to evaluate if RichText content contains actual text beyond empty tags (e.g., <p></p> or <p>&nbsp;</p>)
+    bool HasContent(object content)
+    {
+        if (content == null) return false;
+
+        string htmlString = string.Empty;
+
+        if (content is IHtmlContent htmlContent)
+        {
+            using (var writer = new System.IO.StringWriter())
+            {
+                htmlContent.WriteTo(writer, System.Text.Encodings.Web.HtmlEncoder.Default);
+                htmlString = writer.ToString();
+            }
+        }
+        else
+        {
+            htmlString = content.ToString();
+        }
+
+        if (string.IsNullOrWhiteSpace(htmlString)) return false;
+
+        // Strip HTML tags and non-breaking space entities
+        var stripped = Regex.Replace(htmlString, "<.*?>", string.Empty);
+        stripped = stripped.Replace("&nbsp;", string.Empty).Trim();
+
+        return !string.IsNullOrWhiteSpace(stripped);
+    }
 
     // Local helper for formatting file sizes from Umbraco Media bytes
     string FormatFileSize(long bytes)
@@ -71,6 +101,7 @@
                             var fileName = row.Value<string>("fileName");
                             var mediaItem = row.Value<IPublishedContent>("fileUrl");
                             var fileDescription = row.Value("fileDescription");
+                            var hasDescription = HasContent(fileDescription);
 
                             // Fallbacks and properties extracted directly from Umbraco Media cache
                             var mediaUrl = mediaItem?.Url() ?? "#";
@@ -95,15 +126,12 @@
                                 <td class="text-body-secondary small">@updateDate</td>
                                 <td class="text-body-secondary small">@formattedSize</td>
                                 <td>
-                                    @if (fileDescription != null && !string.IsNullOrWhiteSpace(fileDescription.ToString()))
-                                    {
-                                        <button class="btn btn-primary btn-sm"
-                                                onclick="document.getElementById('@collapseRowId').classList.toggle('show')"
-                                                style="cursor: pointer;"
-                                                type="button">
-                                            <i class="bi bi-chat-left-text ps-4 pe-4"></i>
-                                        </button>
-                                    }
+                                    <button class="btn btn-primary btn-sm"
+                                            onclick="document.getElementById('@collapseRowId').classList.toggle('show')"
+                                            style="cursor: pointer;"
+                                            type="button">
+                                        <i class="bi bi-chat-left-text ps-4 pe-4"></i>
+                                    </button>
                                 </td>
                                 <td>
                                     <a href="@mediaUrl" download class="btn btn-success btn-sm">
@@ -112,19 +140,26 @@
                                 </td>
                             </tr>
 
-                            if (fileDescription != null && !string.IsNullOrWhiteSpace(fileDescription.ToString()))
-                            {
-                                <tr id="@collapseRowId" class="collapsible-row">
-                                    <td colspan="6" class="p-0 border-0">
-                                        <div class="collapse-wrapper">
-                                            <div class="collapse-content p-3 card m-2 d-inline">
-                                                <i class="bi bi-chevron-up me-2"></i>
+                            <tr id="@collapseRowId" class="collapsible-row">
+                                <td colspan="6" class="p-0 border-0">
+                                    <div class="collapse-wrapper">
+                                        <div class="collapse-content p-3 card m-2 d-inline">
+                                            <i class="bi bi-chevron-up me-2" 
+                                               onclick="document.getElementById('@collapseRowId').classList.remove('show')" 
+                                               style="cursor: pointer;" 
+                                               title="Close description"></i>
+                                            @if (hasDescription)
+                                            {
                                                 <span class="small">@fileDescription</span>
-                                            </div>
+                                            }
+                                            else
+                                            {
+                                                <span class="small">There is no file description provided for "@mediaName".</span>
+                                            }
                                         </div>
-                                    </td>
-                                </tr>
-                            }
+                                    </div>
+                                </td>
+                            </tr>
                         }
                     }
                 </tbody>
