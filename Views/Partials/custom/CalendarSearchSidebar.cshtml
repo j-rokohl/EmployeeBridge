@@ -53,8 +53,8 @@
 
     <div class="card border-0 p-3 bg-light">
         @* --- SEARCH FORM --- *@
-        <h6 class="fw-bold mb-2 text-uppercase text-muted small">Search Events</h6>
-        <form method="get" action="@Model.Url()" class="mb-4 border-bottom pb-3">
+        <h6 class="fw-bold mb-3 text-uppercase text-muted small">Search Events</h6>
+        <form method="get" action="@Model.Url()" class="mb-4 border-bottom pb-4">
             @* Preserve view and department filters when submitting search *@
             <input type="hidden" name="view" value="@currentView" />
             @if (!string.IsNullOrEmpty(currentDeptFilter))
@@ -65,7 +65,7 @@
             <div class="input-group">
                 <input type="text" 
                        name="q" 
-                       class="form-control form-control-sm me-1" 
+                       class="form-control form-control-sm round-input me-2" 
                        placeholder="Search keywords..." 
                        value="@currentSearchQuery" 
                        aria-label="Search events keywords">
