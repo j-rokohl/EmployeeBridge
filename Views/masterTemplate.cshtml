@@ -92,13 +92,8 @@
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
-    const cards = document.querySelectorAll('.card');
     const icons = document.querySelectorAll('.icon-fade');
     const accordions = document.querySelectorAll('.accordion-item');
-    cards.forEach((card, index) => {
-    // Multiplies the index by 100ms (e.g., 0ms, 100ms, 200ms, etc.)
-    card.setAttribute('data-aos-delay', index * 50);
-    });
     icons.forEach((icon, index) => {
     // Multiplies the index by 100ms (e.g., 0ms, 100ms, 200ms, etc.)
     icon.setAttribute('data-aos-delay', index * 50);
