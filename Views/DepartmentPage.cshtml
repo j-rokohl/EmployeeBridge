@@ -170,6 +170,36 @@
 </div>
 }
 <!-- News Feed End --------------------------------------------------------------------------------->
+<!-- Calendar Feed Start ------------------------------------------------------------------------------->
+@if (Model.Value<string>("showOrHideCalendarFeed") == "Show")
+{
+<div class="container-flex">
+    <div class="container py-5">
+
+        @{
+            var calendarLink = Model.Value<IEnumerable<Link>>("linkToMoreEvents")?.FirstOrDefault() 
+                   ?? Model.Value<Link>("linkToMoreEvents");
+        }
+
+        <h2 class="gradient ps-4 pe-4 pt-4 pb-2">@Model.Value("calendarFeedTitle")</h2>
+
+            @if (calendarLink != null && !string.IsNullOrWhiteSpace(calendarLink.Url))
+            {
+                var linkText = !string.IsNullOrWhiteSpace(calendarLink.Name) ? calendarLink.Name : "View All Events";
+                var target = string.IsNullOrWhiteSpace(calendarLink.Target) ? "_self" : calendarLink.Target;
+
+                <p class="ps-4 pe-4 pb-4">
+                    <a class="blue-link fw-bold text-decoration-none" href="@calendarLink.Url" target="@target">
+                        @linkText <i class="bi bi-chevron-right" style="-webkit-text-stroke: 1px;"></i>
+                    </a>
+                </p>
+            }
+
+        @await Html.PartialAsync("custom/CalendarFeedDepartmentPage", Model)
+    </div>
+</div>
+}
+<!-- Calendar Feed End --------------------------------------------------------------------------------->
 <!-- Team Leader Start ----------------------------------------------------------------------------->
 @if (Model.Value<string>("showOrHideTeamMemberCards") == "Show")
 {

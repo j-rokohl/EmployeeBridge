@@ -29,7 +29,7 @@
             {
                 var isHomeActive = Model.Id == rootNode.Id;
                 <li>
-                    <a href="@rootNode.Url()" class="flex-grow-1 text-decoration-none text-reset py-2 ps-2 pe-1 d-flex align-items-center @(isHomeActive ? "active" : "")">
+                    <a href="@rootNode.Url()" class="nav-item-btn flex-grow-1 text-decoration-none text-reset py-2 ps-2 pe-1 d-flex align-items-center @(isHomeActive ? "active" : "")">
                         <span><i class="bi bi-house-door me-2"></i>@rootNode.Name</span>
                     </a>
                 </li>

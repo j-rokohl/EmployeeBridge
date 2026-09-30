@@ -263,7 +263,7 @@ button {
   border-radius: 1em !important;
 }
 
-.card-img-top {
+.card-img-top, .card-header {
   border-radius: 1em 1em 0 0 !important;
 }
 

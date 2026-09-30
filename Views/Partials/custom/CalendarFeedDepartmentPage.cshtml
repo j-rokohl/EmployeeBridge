@@ -1,0 +1,113 @@
+﻿@using Umbraco.Cms.Core.Models
+@using Umbraco.Extensions
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+
+@{
+    // Safe extraction helper for Content Pickers (handles single or multiple selection configs)
+    IEnumerable<IPublishedContent> GetPickedDepartments(IPublishedContent contentNode)
+    {
+        if (contentNode == null || !contentNode.HasValue("department"))
+            return Enumerable.Empty<IPublishedContent>();
+
+        var multiPick = contentNode.Value<IEnumerable<IPublishedContent>>("department");
+        if (multiPick != null && multiPick.Any())
+            return multiPick;
+
+        var singlePick = contentNode.Value<IPublishedContent>("department");
+        if (singlePick != null)
+            return new[] { singlePick };
+
+        return Enumerable.Empty<IPublishedContent>();
+    }
+
+    // 1. Get the department nodes selected in the Content Picker ON THIS DEPARTMENT PAGE
+    var pagePickedDepts = GetPickedDepartments(Model).ToList();
+    var targetDeptIds = pagePickedDepts.Select(d => d.Id).ToHashSet();
+    var firstDeptName = pagePickedDepts.FirstOrDefault()?.Name ?? "Department";
+
+    // Find the main Calendar Listing Page for the "All Events" link fallback
+    var calendarListingPage = Umbraco.ContentAtRoot()
+        .SelectMany(x => x.DescendantsOrSelf())
+        .FirstOrDefault(x => string.Equals(x.ContentType.Alias, "calendarListPage", StringComparison.OrdinalIgnoreCase));
+    
+    // Link to main calendar listing pre-filtered by department if applicable
+    var allEventsUrl = calendarListingPage != null 
+        ? (targetDeptIds.Any() ? $"{calendarListingPage.Url()}?deptId={targetDeptIds.First()}" : calendarListingPage.Url())
+        : "#";
+
+    var now = DateTime.Now;
+
+    // 2. Query ALL 'calendarItemPage' nodes across the Umbraco cache
+    var allCalendarEvents = Umbraco.ContentAtRoot()
+        .SelectMany(x => x.DescendantsOrSelf())
+        .Where(x => x != null 
+                 && string.Equals(x.ContentType.Alias, "calendarItemPage", StringComparison.OrdinalIgnoreCase)
+                 && x.IsVisible()
+                 && x.Value<DateTime>("eventDate") >= now.Date)
+        .ToList();
+
+    // 3. Filter events where their "department" picker matches ANY ID selected on this page's picker
+    // Limited to 3 upcoming events using .Take(3)
+    var matchingEvents = allCalendarEvents
+        .Where(evt => {
+            var evtDepts = GetPickedDepartments(evt);
+            return evtDepts.Any(d => targetDeptIds.Contains(d.Id));
+        })
+        .OrderBy(x => x.Value<DateTime>("eventDate"))
+        .Take(3)
+        .ToList();
+}
+
+<div class="ps-4 pe-4">
+    @if (matchingEvents != null && matchingEvents.Any())
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-5">
+            @foreach (var evt in matchingEvents)
+            {
+                var eventTitle = !string.IsNullOrWhiteSpace(evt.Value<string>("eventTitle")) 
+                                    ? evt.Value<string>("eventTitle") 
+                                    : evt.Name;
+                var eventDate = evt.Value<DateTime>("eventDate");
+                var location = evt.Value<string>("location");
+                var shortDesc = evt.Value<string>("shortDescription");
+
+                <div class="col">
+                    <div class="card card-bulma-box h-100">
+                        @* Card Header Date Badge *@
+                        <div class="card-header text-white" style="background-color: #263271;">
+                            <div class="display-1 fw-bold">@eventDate.ToString("dd")</div>
+                            <div class="h1 fw-bold text-uppercase">@eventDate.ToString("MMM")</div>
+                        </div>
+
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">@eventTitle</h5>
+                            
+                            <div class="card-text mb-3">
+                                <p class="card-text text-muted small mb-2">
+                                    <i class="bi bi-clock me-1"></i>@eventDate.ToString("h:mm tt")
+                                    @if (!string.IsNullOrWhiteSpace(location))
+                                    {
+                                        <span class="ms-2 me-2">|</span><i class="bi bi-geo-alt me-1"></i>@location
+                                    }
+                                </p>
+
+                                @if (!string.IsNullOrWhiteSpace(shortDesc))
+                                {
+                                    <p class="text-muted small">@shortDesc</p>
+                                }
+                            </div>
+
+                            <div class="d-grid gap-2 col-12 mx-auto mt-auto pt-1">
+                                <a href="@evt.Url()" target="_self" class="btn btn-primary">Event Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-muted">No upcoming events found for this department.</p>
+    }
+</div>
