@@ -5,16 +5,25 @@
 
 @{
     var item = Model;
+
+    // --- HIDE FROM MENU CHECK ---
+    // If the node has "hideFromMenu" checked, render nothing and exit immediately
+    if (item.HasProperty("hideFromMenu") && item.Value<bool>("hideFromMenu"))
+    {
+        return;
+    }
+
     var isBlogList = item.ContentType.Alias == "blogListPage";
     var isCalendarList = item.ContentType.Alias == "calendarListPage";
     
     // Combine both list containers so neither renders child items in the sidebar
     var isFeedList = isBlogList || isCalendarList;
     
-    // 1. Do not fetch children if the current node is a BlogListPage or CalendarListPage
+    // 1. Do not fetch children if the current node is a BlogListPage or CalendarListPage,
+    // and filter out any children that have "hideFromMenu" enabled.
     var visibleChildren = isFeedList 
         ? Enumerable.Empty<IPublishedContent>()
-        : item.Children().Where(x => x.IsVisible()).ToList();
+        : item.Children().Where(x => x.IsVisible() && !(x.HasProperty("hideFromMenu") && x.Value<bool>("hideFromMenu"))).ToList();
 
     // 2. Feed list pages should never act as parent containers in the sidebar UI
     var hasChildren = !isFeedList && visibleChildren.Any();
@@ -52,7 +61,6 @@
     }
 
     // --- TITLE RESOLUTION LOGIC ---
-    // Fetch value directly from the item (works natively across compositions)
     var customTitleOverride = item.Value<string>("sidebarLinkTitle");
     var linkTitle = !string.IsNullOrWhiteSpace(customTitleOverride) 
         ? customTitleOverride.Trim() 
@@ -64,12 +72,10 @@
 
     if (!string.IsNullOrWhiteSpace(customIconOverride))
     {
-        // 1. Backoffice Override
         iconClass = customIconOverride.Trim();
     }
     else
     {
-        // 2. Default Fallbacks by Template / Alias
         iconClass = item.ContentType.Alias switch
         {
             "homePage" => "bi-house-door",
@@ -87,7 +93,6 @@
             _ => hasChildren ? "bi-folder" : "bi-file-earmark"
         };
 
-        // If the item has children and isn't an explicitly mapped page type, default to folder
         if (hasChildren && item.ContentType.Alias != "departmentPage")
         {
             iconClass = "bi-folder";

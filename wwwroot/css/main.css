@@ -353,16 +353,20 @@ button {
 }
 
 .carousel-caption {
-  background-color: #1a8f39 !important;
   border-radius: 0 1rem 1rem 0 !important;
   padding: 15px !important;
   text-align: left !important;
   right: 0 !important;
   left: 0 !important;
 
-  @media (min-width: 768px) {
+  @media (min-width: 900px) {
     width: 45%;
   }
+
+  @media (min-width: 601px) {
+    background-color: #1a8f39 !important;
+  }
+
 }
 
 .carousel-control-next,
@@ -370,13 +374,32 @@ button {
   width: 6% !important;
 }
 
-.carousel-header {
-  color: #ffffff;
-
-  @media (min-width: 768px) {
+  @media (min-width: 1201px) {
+    .carousel-header {
     font-size: 4rem;
+    }
   }
-}
+
+  @media (min-width: 901px) and (max-width: 1200px) {
+    .carousel-header {
+    font-size: 2.5rem;
+    }
+  }
+
+  @media (min-width: 601px) and (max-width: 900px) {
+    .carousel-header {
+    font-size: 2.5rem;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .carousel-header {
+    display: none !important;
+    }
+    .caption-indent > p {
+      display: none !important;
+    }
+  }
 
 .caption-indent {
   color: #ffffff;

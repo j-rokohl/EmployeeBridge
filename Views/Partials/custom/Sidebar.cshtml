@@ -27,17 +27,26 @@
         <ul class="sidebar-nav">
             @if (rootNode != null && rootNode.IsVisible())
             {
-                var isHomeActive = Model.Id == rootNode.Id;
-                <li>
-                    <a href="@rootNode.Url()" class="nav-item-btn flex-grow-1 text-decoration-none text-reset py-2 ps-2 pe-1 d-flex align-items-center @(isHomeActive ? "active" : "")">
-                        <span><i class="bi bi-house-door me-2"></i>@rootNode.Name</span>
-                    </a>
-                </li>
+                // Optionally check if Home itself should be hidden if hideFromMenu is on the root node
+                var hideHome = rootNode.HasProperty("hideFromMenu") && rootNode.Value<bool>("hideFromMenu");
+                if (!hideHome)
+                {
+                    var isHomeActive = Model.Id == rootNode.Id;
+                    <li>
+                        <a href="@rootNode.Url()" class="nav-item-btn flex-grow-1 text-decoration-none text-reset py-2 ps-2 pe-1 d-flex align-items-center @(isHomeActive ? "active" : "")">
+                            <span><i class="bi bi-house-door me-2"></i>@rootNode.Name</span>
+                        </a>
+                    </li>
+                }
             }
 
             @if (rootNode != null)
             {
-                foreach (var child in rootNode.Children().Where(x => x.IsVisible()))
+                // Filter out children where hideFromMenu is true
+                var menuChildren = rootNode.Children()
+                    .Where(x => x.IsVisible() && !(x.HasProperty("hideFromMenu") && x.Value<bool>("hideFromMenu")));
+
+                foreach (var child in menuChildren)
                 {
                     @await Html.PartialAsync("custom/SidebarItem", child, ViewData)
                 }
